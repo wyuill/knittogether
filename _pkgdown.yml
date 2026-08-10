@@ -1,0 +1,9 @@
+url: https://sturdy-giggle-wwjo5pk.pages.github.io/
+template:
+  bootstrap: 5
+  light-switch: true
+  bootswatch: zephyr
+authors:
+  footer:
+    roles: [cph]
+
