@@ -2,8 +2,8 @@
 
 <!-- badges: start -->
 
-[![test coverage](https://github.com/LBCamden/knittogether/blob/badges/.badges/main/coverage.svg)](https://github.com/LBCamden/knittogether/actions/workflows/test-coverage.yaml) [![R-CMD-check](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml)
-
+[![R-CMD-check](https://github.com/wyuill/knittogether/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/wyuill/knittogether/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/wyuill/knittogether/graph/badge.svg)](https://app.codecov.io/gh/wyuill/knittogether)
 <!-- badges: end -->
 
 ## Overview
