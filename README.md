@@ -1,11 +1,5 @@
 # knittogether <img src="man/figures/logo.png" alt="hex logo for knittogether" align="right" height="120"/>
 
-<!-- badges: start -->
-
-[![test coverage](https://github.com/LBCamden/knittogether/blob/badges/.badges/main/coverage.svg)](https://github.com/LBCamden/knittogether/actions/workflows/test-coverage.yaml) [![R-CMD-check](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml)
-
-<!-- badges: end -->
-
 ## Overview
 
 knittogether is an R package for reproducible collaboration between R users and non-R users. It helps teams produce high-quality Quarto outputs while reducing the friction of moving between Office and Quarto.
