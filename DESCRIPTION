@@ -1,6 +1,6 @@
 Package: knittogether
 Title: Reproducible Collaboration Between Quarto and Office
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(
     person("Will", "Yuill", , "will.yuill@camden.gov.uk", role = c("cre", "aut"),
            comment = c(ORCID = "0009-0003-6270-4273")),
@@ -32,3 +32,4 @@ VignetteBuilder: quarto, knitr
 SystemRequirements: Pandoc (>= 3.8.3) is required to read in Microsoft PowerPoint. Functions involving the import and/or export of citations require Zotero (https://www.zotero.org/download) to be installed and running and the BetterBibTex addin (https://github.com/retorquere/zotero-better-bibtex/releases) is required. To export live citations to .docx format, a lua filter (https://retorque.re/zotero-better-bibtex/exporting/zotero.lua) is required and must be specified in the YAML of the .qmd.
 URL: https://wyuill.github.io/knittogether/
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

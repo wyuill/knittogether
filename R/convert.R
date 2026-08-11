@@ -28,7 +28,7 @@
 #'   useful downstream. Defaults to `NULL`.
 #'
 #' @param pandoc_version
-#'   Pandoc version to use. Passed directly to `pandoc::pandoc_run()`. Defaults to `"latest"`.
+#'   Pandoc version to use. Passed directly to `pandoc::pandoc_run()`. Defaults to `"default"`.
 #'
 #' @param verbose
 #'   Logical. If `TRUE`, prints informative messages about the Pandoc command being executed and the location of
@@ -53,7 +53,7 @@ convert <- function(
 	markdown_file = "markdown_output.md",
 	media_base_dir = ".",
 	pandoc_args = NULL,
-	pandoc_version = "latest",
+	pandoc_version = "default",
 	verbose = FALSE
 ) {
 	# Check inputs and dependencies
