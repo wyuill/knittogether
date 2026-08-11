@@ -1,6 +1,6 @@
 Package: knittogether
 Title: Reproducible Collaboration Between Quarto and Office
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(
     person("Will", "Yuill", , "will.yuill@camden.gov.uk", role = c("cre", "aut"),
            comment = c(ORCID = "0009-0003-6270-4273")),
