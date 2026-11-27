@@ -1,9 +1,8 @@
-# Check if output is PPTX
+# Check the format being rendered
 
-Utility functions to detect the current knitr output format. `is_html`
-checks whether the output is HTML. `is_pdf` checks whether the output is
-PDF. `is_docx` checks whether the output is DOCX. `is_pptx` checks
-whether the output is PPTX.
+Use these in a Quarto or R Markdown document to do something only for
+one output format, for example to add slide breaks only in PowerPoint.
+Outside a render, they all return `FALSE`.
 
 ## Usage
 
@@ -19,4 +18,17 @@ is_html()
 
 ## Value
 
-TRUE if knitr is outputting the relevant file type.
+`TRUE` if the document is being rendered to that format, otherwise
+`FALSE`.
+
+## See also
+
+Other output format:
+[`hide_markers_css()`](https://wyuill.github.io/knittogether/reference/hide_markers_css.md),
+[`output_type()`](https://wyuill.github.io/knittogether/reference/output_type.md)
+
+## Examples
+
+``` r
+if (is_pptx()) "Only in the slides"
+```

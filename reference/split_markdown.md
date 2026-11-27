@@ -1,4 +1,4 @@
-# Split a markdown file into section-specific markdown (and optional Quarto) files
+# Split a long Markdown file into one file per section
 
 Splits a markdown document at a specified pattern and writes each
 section to its own subdirectory. This is useful for converting long

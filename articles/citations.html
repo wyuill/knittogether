@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Using References • knittogether</title>
+<title>Using references • knittogether</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -16,7 +16,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="citations_files/libs/quarto-html/popper.min.js"></script><script src="citations_files/libs/quarto-html/tippy.umd.min.js"></script><link href="citations_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="citations_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Using References">
+<!-- pkgdown --><script src="../pkgdown.js"></script><script src="../extra.js"></script><meta property="og:title" content="Using references">
 <meta property="og:image" content="https://wyuill.github.io/knittogether/logo.png">
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">knittogether</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/citations.html">Using References</a></li>
+<li><a class="dropdown-item" href="../articles/citations.html">Using references</a></li>
     <li><a class="dropdown-item" href="../articles/extended-workflow.html">Extended workflow</a></li>
     <li><a class="dropdown-item" href="../articles/office-styling.html">Office styling and layout</a></li>
     <li><a class="dropdown-item" href="../articles/powerpoint.html">Working with PowerPoint</a></li>
@@ -69,7 +69,7 @@
 </nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Using References</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Using references</h1>
 
 
 
@@ -83,44 +83,48 @@
 
 
 
-    <p>knittogether can preserve and round-trip citations between Word and Quarto. This page shows how to extract citations from Word and how to export documents with live Zotero citations.</p>
-<section class="level2"><h2 id="getting-references-from-word">Getting references from Word<a class="anchor" aria-label="anchor" href="#getting-references-from-word"></a>
+    <p>Your colleagues will probably add citations in Word with Zotero, and they’ll want to see them in a normal style such as APA or Vancouver, not as Pandoc citation keys. This article shows how to bring Zotero citations from Word into Markdown, and how to send a document back to Word with the citations still live, so they can carry on editing them in Zotero.</p>
+<p>You need <a href="https://www.zotero.org/download" class="external-link">Zotero</a> and its <a href="https://retorque.re/zotero-better-bibtex/installation/" class="external-link">Better BibTeX</a> add-on.</p>
+<section class="level2"><h2 id="from-word-to-markdown">From Word to Markdown<a class="anchor" aria-label="anchor" href="#from-word-to-markdown"></a>
 </h2>
-<p>Citations are likely to be added directly to Word documents, and it is unlikely that users will want to see Pandoc citation syntax in text, preferring more standard citation styles such as APA or Vancouver. Provided users use <a href="https://www.zotero.org/" class="external-link">Zotero</a> as a reference manager, it is easy to convert between these styles and create bibliography files.</p>
-<p>Assuming a Word document exists with linked citations the following steps will result in a file that can be imported with working references:</p>
+<p>Before converting the document, swap its citations for citation keys and export a bibliography:</p>
 <ol type="1">
-<li>Install the <a href="https://retorque.re/zotero-better-bibtex/installation/index.html" class="external-link">BetterBibTeX</a> extension for Zotero.</li>
-<li>Open the Word document. On the Zotero ribbon, click ‘Document Preferences’ and change the citation style to ‘Better BibTeX Citekeys’, available from the extension, and click ‘OK’.</li>
-<li>On the Zotero ribbon click ‘Unlink Citations’ and accept the warning. Note you may wish to save another copy of the document with linked citations for safety, though Quarto file produced by knittogether can produce a Word document with working citations.</li>
-<li>In Zotero itself export the references used into a bibliography. It is generally advisable to save references for a project to a dedicated library so that the bibliography contains only relevant references. To do this:
-<ul>
-<li><p>Right click on the library where the references are stored and click ‘Export Collection’,</p></li>
-<li><p>Select ‘Better BibTeX’ from the drop down and click ‘OK’,</p></li>
-<li><p>Save the .bib file in the relevant directory.</p></li>
-</ul>
-</li>
-</ol></section><section class="level2"><h2 id="getting-references-to-word">Getting references to Word<a class="anchor" aria-label="anchor" href="#getting-references-to-word"></a>
+<li>Open the document in Word. Save a copy first if you want to keep the linked citations, although knittogether can give you working citations back later.</li>
+<li>On the Zotero tab, click Document Preferences, choose the citation style “Better BibTeX Citekeys” and click OK.</li>
+<li>Still on the Zotero tab, click Unlink Citations and accept the warning. Each citation is now plain text such as <code>[@roseRosesStrategyPreventive2008]</code>, which Pandoc understands.</li>
+<li>In Zotero, right-click the collection that holds the references, choose Export Collection, pick Better BibTeX as the format and save the <code>.bib</code> file in your project.</li>
+</ol>
+<p>It’s easiest if each project has its own Zotero collection, so the bibliography holds only the references you use.</p>
+<p>Then convert and clean as usual, with <code>clean_citations = TRUE</code> (see <code><a href="../articles/knittogether.html">vignette("knittogether")</a></code>), and list the <code>.bib</code> file under <code>bibliography</code> in your Quarto document.</p>
+</section><section class="level2"><h2 id="from-markdown-back-to-word-with-live-citations">From Markdown back to Word, with live citations<a class="anchor" aria-label="anchor" href="#from-markdown-back-to-word-with-live-citations"></a>
 </h2>
-<p>It is possible to export a .docx file with working Zotero references in, allowing users to edit references as they normally would and avoiding the risk of changes to references causing breakages. Three items are required for this, though the first two are likely to be present anyway.</p>
+<p>To give your colleague a Word document where the citations still work in Zotero, you need three files:</p>
 <ul>
-<li><p><strong>example.bib:</strong> as covered in the “Getting references from Word” section.</p></li>
-<li><p><strong>style.csl:</strong> a file giving instructions on how to format citations and bibliographies available from <a href="https://github.com/citation-style-language/styles" class="external-link">Citation Style Language</a>.</p></li>
-<li><p><strong>zotero.lua:</strong> a <a href="https://retorque.re/zotero-better-bibtex/exporting/pandoc/#from-markdown-to-zotero-live-citations" class="external-link">lua filter</a> used by quarto to keep citations alive when exporting to Word. This must be included in the YAML of the qmd file as below</p></li>
+<li>
+<strong>The <code>.bib</code> file</strong> you exported above.</li>
+<li>
+<strong>A citation style (<code>.csl</code>)</strong>, for example from the <a href="https://github.com/citation-style-language/styles" class="external-link">Citation Style Language styles repository</a>.</li>
+<li>
+<strong><code>zotero.lua</code></strong>, a <a href="https://retorque.re/zotero-better-bibtex/exporting/pandoc/#from-markdown-to-zotero-live-citations" class="external-link">Lua filter from Better BibTeX</a> that turns citation keys back into live Zotero citations.</li>
 </ul>
-<pre><code>format:
-  docx: default
-csl: elsevier-vancouver.csl
-bibliography: _example.bib
-filters:
-  - zotero.lua</code></pre>
-<p>This supports a full docx→markdown→docx cycle with live references throughout, though references still need to be unlinked before importing from docx to markdown.</p>
-</section><section class="level2"><h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
+<p>Add them to the YAML of your <code>.qmd</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">docx</span><span class="kw">:</span><span class="at"> default</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">csl</span><span class="kw">:</span><span class="at"> elsevier-vancouver.csl</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bibliography</span><span class="kw">:</span><span class="at"> example.bib</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> zotero.lua</span></span></code></pre></div>
+<p>Zotero needs to be running when you render. You can then go round as often as you like: Word to Markdown to Word, with live references each time. Just remember to unlink the citations (steps 2 and 3 above) each time before converting.</p>
+</section><section class="level2"><h2 id="if-something-goes-wrong">If something goes wrong<a class="anchor" aria-label="anchor" href="#if-something-goes-wrong"></a>
 </h2>
 <ul>
-<li><p>Errors with citations can be caused by excess <code>\</code> created during conversion. This typically occurs when a different markdown variant is used (e.g. <code>convert_markdown(pandoc_args='--to=markdown_strict')</code>). Setting <code>clean_markdown(clean_citations = TRUE)</code> should resolve these issues.</p></li>
-<li><p>If citations are not linked to a bibliography entry in the output, this is typically due to a mismatch between the keys imported from Word and the keys exported in the .bib file. This can occur sporadically and can be solved by editing the citekey field in Zotero for affected items.</p></li>
-<li><p><code><a href="../articles/extended-workflow.html">vignette("extended-workflow")</a></code> provides an example of extracting citations from Word.</p></li>
-</ul></section><script id="quarto-html-after-body" type="application/javascript">
+<li>
+<strong>Citations show up with backslashes, such as <code>\[@key\]</code>.</strong> Converting to a different Markdown flavour, for example with <code>convert_markdown(pandoc_args = "--to=markdown_strict")</code>, can add extra escaping. Run <code>clean_markdown(clean_citations = TRUE)</code> to remove it.</li>
+<li>
+<strong>A citation doesn’t link to its reference.</strong> The key in the document doesn’t match the key in the <code>.bib</code> file. In Zotero, check or edit the item’s citation key so the two agree, then export the bibliography again.</li>
+</ul>
+<p><code><a href="../articles/extended-workflow.html">vignette("extended-workflow")</a></code> includes a document with a citation you can try this on.</p>
+</section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);

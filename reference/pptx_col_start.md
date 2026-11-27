@@ -1,10 +1,10 @@
-# Initiating column structure of PowerPoint slide
+# Split a slide into two columns
 
-These functions allow the insertion of columns into markdown output and
-are primarily intended for .pptx outputs. `pptx_col_start` initiates the
-column. `pptx_col_break` creates a column break. In .pptx outputs there
-can only be one column break ordinarily. `pptx_col_end` ends the column
-section, returning to full width content.
+Put `pptx_col_start()` before the first column's content,
+`pptx_col_break()` between the columns and `pptx_col_end()` after the
+second column. Each returns the Markdown for that point, so use them in
+inline code. In HTML output they return nothing, and the content runs
+down the page as normal.
 
 ## Usage
 
@@ -20,24 +20,31 @@ pptx_col_end()
 
 - width:
 
-  Column width as a percentage from 0 to 100. In `pptx_col_start()` this
-  is the first column width; in `pptx_col_break()` this is the second
-  column width.
+  The column's width, as a percentage of the slide. In
+  `pptx_col_start()` this is the first column; in `pptx_col_break()` the
+  second. Defaults to 50.
+
+## Value
+
+The Markdown that starts, divides or ends the columns, or `NULL` in HTML
+output.
+
+## See also
+
+Other PowerPoint:
+[`add_pptx_backgrounds_to_headers()`](https://wyuill.github.io/knittogether/reference/add_pptx_backgrounds_to_headers.md),
+[`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md),
+[`insert_slide_break()`](https://wyuill.github.io/knittogether/reference/insert_slide_break.md),
+[`pptx_section_slide()`](https://wyuill.github.io/knittogether/reference/pptx_section_slide.md),
+[`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md)
 
 ## Examples
 
 ``` r
-
- pptx_col_start(width = 40)
+pptx_col_start(width = 40)
 #> [1] ":::: columns\n::: {.column width='40%'}"
-
- # column content (e.g. plot(mtcars))
-
- pptx_col_break(width = 60)
+pptx_col_break(width = 60)
 #> [1] ":::\n::: {.column width='60%'}"
-
- # column content (e.g. head(mtcars))
-
- pptx_col_end()
+pptx_col_end()
 #> [1] ":::\n::::"
 ```

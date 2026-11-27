@@ -22,7 +22,7 @@ Authors:
 
 Other contributors:
 
+- Ben Kimpton <ben.kimpton@camden.gov.uk> \[contributor\]
+
 - London Borough of Camden Public Health Intelligence (Health &
   Wellbeing) <publichealth.intel@camden.gov.uk> \[copyright holder\]
-
-- Ben Kimpton <ben.kimpton@camden.gov.uk> \[contributor\]

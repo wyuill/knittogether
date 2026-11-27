@@ -1,9 +1,10 @@
-# Define a content specification for insertion into a document
+# Describe the content for one placeholder
 
-`define_content()` creates a structured object describing how a piece of
-content should be inserted into a Markdown/Quarto document. The
-`content` is captured as an **unevaluated expression** and later
-rendered by downstream tooling (e.g., knitr/Quarto).
+Says what should replace a placeholder and how it goes in. The code in
+`content` isn't run now: it's written into the Markdown by
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+and runs when Quarto renders the document. Collect the results with
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md).
 
 ## Usage
 
@@ -22,70 +23,78 @@ define_content(
 
 - description:
 
-  An optional label describing the content for ease of validating the
-  content is in the correct place.
+  Optional. A short description of the content, shown in the validation
+  log to help you check the right output is in the right place.
 
 - placeholder_id:
 
-  A slug identifying the placeholder (e.g., `"plot1"`). The full
-  placeholder matched in the Markdown file will be
-  `paste0(placeholder_prefix, "_", placeholder_id)`.
+  The part of the placeholder after the prefix. With the default prefix
+  `"placeholder_"`, the ID `"plot"` fills `placeholder_plot`.
 
 - output_mode:
 
-  One of:
+  How the content goes in:
 
-  - `"inline"` – insert a knitr inline expression using the R engine
-    `` `r <expr>` ``.
+  - `"inline"` writes inline R code, `` `r <content>` ``, for a value
+    inside a sentence.
 
-  - `"chunk"` – insert a fenced code block. Chunk language defaults to R
-    but can be overridden via `chunk_options$engine`.
+  - `"chunk"` writes a code chunk on its own line, for plots, tables or
+    anything longer. The chunk is R unless you set
+    `chunk_options$engine`.
 
-  - `"asis"` – insert literal text. If `content` is a character literal,
-    it is inserted as-is; otherwise the expression is deparsed to text
-    and inserted.
+  - `"asis"` writes text exactly as given. If `content` is a string it's
+    inserted as it is; otherwise the code itself is inserted as text,
+    not its result.
 
 - content:
 
-  A quoted or unquoted R expression (captured, not executed). For
-  `"inline"` and `"chunk"`, this expression is emitted for knitr/Quarto
-  to evaluate. For when `output_mode` is set to `"asis"`, `content` is
-  inserted directly; otherwise, the expression is deparsed to text.
+  The code to insert, for example `{ plot(mtcars$wt, mtcars$mpg) }` or
+  `nrow(mtcars)`. It can also be passed in from a function or with `!!`,
+  for example inside [`lapply()`](https://rdrr.io/r/base/lapply.html).
 
 - content_type:
 
-  An optional human-readable type (e.g., `"plot"`, `"table"`, `"qmd"`)
-  used for ease of validation.
+  Optional. A label such as `"plot"`, `"table"` or `"qmd"`, shown in the
+  validation log.
 
 - chunk_options:
 
-  Named list of chunk options when `output_mode = "chunk"`.
+  A named list of chunk options, used when `output_mode = "chunk"`. Any
+  knitr option works, such as `echo = FALSE` or `fig.width = 7`. Three
+  more control how the chunk is written:
 
-  - `engine` (default `"r"`) to select language.
+  - `engine`: the chunk language. Defaults to `"r"`.
 
-  - `as_child = TRUE` to write a child `.qmd` and include it with
-    `{{< include child_<slug>.qmd >}}` instead of inlining the chunk.
+  - `as_child`: if `TRUE`, write the chunk to its own file,
+    `child_<id>.qmd`, and include that file instead.
 
-  - `child_dir` optional subdirectory to store child files relative to
-    the parent markdown file.
-
-  - Any other knitr options, e.g. `echo = FALSE`, `fig.width = 7`.
+  - `child_dir`: the folder for child files, relative to the Markdown
+    file.
 
 ## Value
 
-A `"content_spec"` object.
+A `content_spec` object, to pass to
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md).
+
+## See also
+
+Other content:
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md)
 
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-spec <- define_content(
-  description     = "A plot of mtcars",
-  placeholder_id  = "mtcarsplot",
-  output_mode     = "chunk",
-  content         = { plot(mtcars$wt, mtcars$mpg) },
-  content_type    = "plot",
-  chunk_options   = list(echo = FALSE, fig.width = 7)
+plot <- define_content(
+  placeholder_id = "plot",
+  description = "Car weight against fuel economy",
+  output_mode = "chunk",
+  content = { plot(mtcars$wt, mtcars$mpg) },
+  chunk_options = list(echo = FALSE, fig.width = 7)
 )
-} # }
+
+total <- define_content(
+  placeholder_id = "total",
+  output_mode = "inline",
+  content = nrow(mtcars)
+)
 ```

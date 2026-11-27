@@ -1,20 +1,19 @@
-# Clean Pandoc‑generated Markdown for use in Quarto (.qmd)
+# Tidy converted Markdown for Quarto
 
-Post‑processes Markdown so that it’s suitable for inclusion in Quarto
-(`.qmd`) documents. Optionally:
+Fixes things that Word and PowerPoint leave behind after
+[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
+so the Markdown works in Quarto. Each fix is optional:
 
-- fixes citation escaping,
+- removes stray escaping from citations,
 
-- adjusts PowerPoint‑derived heading levels,
+- moves headings down a level, for all headings or for PowerPoint slides
+  under a section,
 
-- globally offsets headings,
+- turns draft blocks written by
+  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+  back into their placeholders, ready to fill again,
 
-- clears draft blocks written by
-  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md),
-  keeping only the placeholder,
-
-- removes styling from placeholder markers written by
-  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
+- removes Word styling and formatting from placeholders.
 
 ## Usage
 
@@ -28,7 +27,7 @@ clean_markdown(
   draft_mode_prefix = "DRAFT_CONTENT_START",
   draft_mode_suffix = "DRAFT_CONTENT_END",
   clear_placeholder_styling = TRUE,
-  placeholder_prefix = "placeholder_content",
+  placeholder_prefix = "placeholder_",
   output_file = NULL,
   overwrite = TRUE
 )
@@ -38,83 +37,98 @@ clean_markdown(
 
 - markdown_file:
 
-  Path to the Markdown file to clean (overwritten in place).
+  Path to the Markdown file to clean.
 
 - clean_citations:
 
-  Logical; if `TRUE`, removes stray escaping in citations, for example
-  `\\[@key\\]` becomes `[@key]`. Defaults to `FALSE`.
+  Logical. If `TRUE`, remove the backslashes Pandoc adds to citations,
+  so `\[@key\]` becomes `[@key]`. Defaults to `FALSE`.
 
 - pptx_section_offset:
 
-  Logical; if `TRUE`, headings that have body text before the next
-  heading are incremented by one level (max 6). Defaults to `FALSE`.
+  Logical. If `TRUE`, move each heading that has body text under it down
+  one level (to a maximum of 6). For slides, this keeps Section Header
+  slides at the top level and puts the slides beneath them. Defaults to
+  `FALSE`.
 
 - heading_offset:
 
-  Logical; if `TRUE`, increments all headings by one level (max 6). This
-  applies after `pptx_section_offset`. Defaults to `FALSE`.
+  Logical. If `TRUE`, move every heading down one level (to a maximum of
+  6), so a Word "Heading 1" doesn't become the page title in HTML.
+  Applied after `pptx_section_offset`. Defaults to `FALSE`.
 
 - clear_draft:
 
-  Logical; if `TRUE`, remove content between draft markers specified in
-  `draft_mode_prefix` and `draft_mode_suffix` while retaining the
-  placeholder. Defaults to `FALSE`.
+  Logical. If `TRUE`, replace each draft block with the placeholder it
+  was filled from, ready for
+  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+  to fill again. `placeholder_prefix` must match the one used to fill
+  the draft: otherwise no placeholder is found and the draft content is
+  removed with nothing to refill. Defaults to `FALSE`.
 
-- draft_mode_prefix:
+- draft_mode_prefix, draft_mode_suffix:
 
-  Start marker (plain string). Default: `"DRAFT_CONTENT_START"`.
-
-- draft_mode_suffix:
-
-  End marker (plain string). Default: `"DRAFT_CONTENT_END"`.
+  The lines that start and end a draft block. Defaults to
+  `"DRAFT_CONTENT_START"` and `"DRAFT_CONTENT_END"`. Avoid `--`, which
+  Word turns into a dash.
 
 - clear_placeholder_styling:
 
-  Logical; if `TRUE`, removes styling tags applied to placeholder
-  markers. For example,
-  `"[placeholder_content_test]{custom-style=\"PlaceholderMarker\"}"` is
-  cleaned to `"placeholder_content_test"`. Only spans that contain
-  nothing but a placeholder token are changed; other `custom-style`
-  spans and all whitespace are left as they are. Defaults to `TRUE`.
+  Logical. If `TRUE` (the default), remove the Word style and any bold,
+  italic, superscript or subscript from placeholders, so
+  `[placeholder_total]{custom-style="PlaceholderMarker"}` becomes
+  `placeholder_total`. Only placeholders are changed.
 
 - placeholder_prefix:
 
-  Prefix used to identify placeholder tokens (e.g.,
-  `"placeholder_content"` matches `"placeholder_content_my_id"`).
-  Defaults to `"placeholder_content"`.
+  The text every placeholder starts with, used exactly as given. The
+  placeholder is the prefix followed by the ID, so the default
+  `"placeholder_"` with the ID `plot` gives `placeholder_plot`. Choose
+  any prefix that won't appear by accident in normal writing, such as
+  `"knit_"` or `"xyz_"`. Use the same prefix in `clean_markdown()` and
+  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
+  Defaults to `"placeholder_"`.
 
 - output_file:
 
-  Optional path to write the cleaned Markdown to. `markdown_file` is
-  then left unchanged. Defaults to `NULL`, which overwrites
-  `markdown_file`.
+  Path to write the result to, leaving `markdown_file` unchanged.
+  Defaults to `NULL`, which overwrites `markdown_file`.
 
 - overwrite:
 
-  Logical; if `FALSE`, stop rather than write over an existing file.
-  Defaults to `TRUE`, so existing scripts keep overwriting. Use
+  Logical. If `FALSE`, stop rather than write over an existing file.
+  Defaults to `TRUE`. Use
   [`timestamped_path()`](https://wyuill.github.io/knittogether/reference/timestamped_path.md)
   to keep earlier versions.
 
 ## Value
 
-Invisibly returns the cleaned lines written to the file.
+The cleaned lines, invisibly.
+
+## See also
+
+Other workflow:
+[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md),
+[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
- # Clean a Markdown file with all options enabled
- clean_markdown(
-   markdown_file = "markdown_output.md",
-   clean_citations = TRUE,
-   pptx_section_offset = TRUE,
-   heading_offset = TRUE,
-   clear_draft = TRUE,
-   draft_mode_prefix = "DRAFT_CONTENT_START",
-   draft_mode_suffix = "DRAFT_CONTENT_END",
-   clear_placeholder_styling = TRUE
- )
+# After converting a Word document for the first time
+clean_markdown(
+  "draft.md",
+  placeholder_prefix = "placeholder_",
+  heading_offset = TRUE,
+  clean_citations = TRUE
+)
+
+# After the writer has edited a filled draft
+clean_markdown(
+  "draft.md",
+  placeholder_prefix = "placeholder_",
+  clear_draft = TRUE
+)
 } # }
 ```

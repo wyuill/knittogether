@@ -16,7 +16,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="powerpoint_files/libs/quarto-html/popper.min.js"></script><script src="powerpoint_files/libs/quarto-html/tippy.umd.min.js"></script><link href="powerpoint_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="powerpoint_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Working with PowerPoint">
+<!-- pkgdown --><script src="../pkgdown.js"></script><script src="../extra.js"></script><meta property="og:title" content="Working with PowerPoint">
 <meta property="og:image" content="https://wyuill.github.io/knittogether/logo.png">
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">knittogether</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/citations.html">Using References</a></li>
+<li><a class="dropdown-item" href="../articles/citations.html">Using references</a></li>
     <li><a class="dropdown-item" href="../articles/extended-workflow.html">Extended workflow</a></li>
     <li><a class="dropdown-item" href="../articles/office-styling.html">Office styling and layout</a></li>
     <li><a class="dropdown-item" href="../articles/powerpoint.html">Working with PowerPoint</a></li>
@@ -83,23 +83,60 @@
 
 
 
-    <p>The workflow itself does not require much adjustment to work with PowerPoint, though <code>clean_markdown(pptx_section_offset = TRUE)</code> is often useful to adjust header levels when Section Header slides are used. A number of specific helper functions can also help.</p>
-<p>Quarto-produced PowerPoint presentations often require different styling and formatting than other output types. knittogether has a set of functions to make these easier to apply, typically with checks to ensure these styles do not apply to HTML outputs. These functions are simplest to use in Quarto-generated content but can be inserted into content imported from markdown if desired.</p>
-<section class="level3"><h3 id="slide-templates">Slide templates<a class="anchor" aria-label="anchor" href="#slide-templates"></a>
-</h3>
-<p>A limited number of <a href="https://pandoc.org/demo/example33/10.1-structuring-the-slide-show.html" class="external-link">slide layouts</a> are supported by Pandoc. It is advisable to create a master slide template limited to these layouts, with useful features such as slide numbers and styling applied to elements such as text.</p>
-</section><section class="level3"><h3 id="backgrounds">Backgrounds<a class="anchor" aria-label="anchor" href="#backgrounds"></a>
-</h3>
-<p>The function <code><a href="../reference/pptx_section_slide.html">pptx_section_slide()</a></code> allows for background images to be added to slides. These images need to be provided in the right dimensions.</p>
-</section><section class="level3"><h3 id="columns">Columns<a class="anchor" aria-label="anchor" href="#columns"></a>
-</h3>
-<p>The functions <code><a href="../reference/pptx_col_start.html">pptx_col_start()</a></code>, <code><a href="../reference/pptx_col_start.html">pptx_col_break()</a></code>, and <code><a href="../reference/pptx_col_start.html">pptx_col_end()</a></code> allow easy addition of columns.</p>
-</section><section class="level3"><h3 id="starting-a-new-slide">Starting a new slide<a class="anchor" aria-label="anchor" href="#starting-a-new-slide"></a>
-</h3>
-<p>By default, level 1 (<code>#</code>) and level 2 (<code>##</code>) headings create a new slide, with all subsequent content placed on that slide. This can produce content that exceeds slide size and, unlike HTML slide formats, there is currently no practical way to resize text except by globally reducing text size in the master template. It can therefore be useful to add slide breaks throughout the text. This can be done manually with <code><a href="../reference/slide_break.html">slide_break()</a></code> and automatically on a string with <code><a href="../reference/auto_slide_break.html">auto_slide_break()</a></code>. In Quarto-generated documents, these are straightforward to apply, though some trial and error may be needed to ensure content fits slides. If exact locations are required within Word/markdown documents, breaks can be added manually in markdown (with reproducibility trade-offs), added programmatically (e.g., matching text or at specific line numbers), or with inline code such as <code>`r knittogether::slide_break()`</code> at the relevant location.</p>
-</section><section class="level3"><h3 id="citations">Citations<a class="anchor" aria-label="anchor" href="#citations"></a>
-</h3>
-<p>There is no Zotero support for PowerPoint. Therefore it can often be easier to create them in R. If citations are done in PowerPoint they must be done so manually by creating a library in Zotero, adding the references and then copying the Citation Key for each reference into the PowerPoint, prefixing it with <code>[@</code> and suffixing it with <code>]</code> so that it aligns with the pandoc syntax outlined in <code><a href="../articles/citations.html">vignette("citations")</a></code> and matches the bibliography. These references will be read into markdown and subsequent qmd outputs.</p>
+    <p>PowerPoint works much like Word. You convert, clean and fill placeholders in the same way (see <code><a href="../articles/knittogether.html">vignette("knittogether")</a></code>). This article covers the differences, and the helpers knittogether provides for slides.</p>
+<p>Most of these helpers check the output format, so the same Quarto document can still render to HTML. They’re easiest to use in a document you write in Quarto, but you can also add them to Markdown converted from Office.</p>
+<section class="level2"><h2 id="converting-slides">Converting slides<a class="anchor" aria-label="anchor" href="#converting-slides"></a>
+</h2>
+<p>Reading <code>.pptx</code> files needs Pandoc 3.8.3 or later. If you use Section Header slides, clean the Markdown with <code>pptx_section_offset = TRUE</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/clean_markdown.html">clean_markdown</a></span><span class="op">(</span><span class="st">"slides.md"</span>, pptx_section_offset <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>That keeps the section titles as top-level headings and moves each slide’s heading down a level beneath its section.</p>
+</section><section class="level2"><h2 id="slide-templates">Slide templates<a class="anchor" aria-label="anchor" href="#slide-templates"></a>
+</h2>
+<p>Quarto takes the look of your slides from a template, set with <code>reference-doc</code> like a Word reference document. Pandoc only supports <a href="https://pandoc.org/MANUAL.html#powerpoint-layout-choice" class="external-link">a few slide layouts</a>, so build a master deck with just those layouts. Put slide numbers, logos and text styles in the master rather than on individual slides.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pptx</span><span class="kw">:</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">reference-doc</span><span class="kw">:</span><span class="at"> template.pptx</span></span></code></pre></div>
+</section><section class="level2"><h2 id="background-images">Background images<a class="anchor" aria-label="anchor" href="#background-images"></a>
+</h2>
+<p><code><a href="../reference/pptx_section_slide.html">pptx_section_slide()</a></code> writes a heading with a background image when the output is PowerPoint, and a plain heading otherwise. It looks in <code>bg_dir</code> for an image named after the heading level (<code>level1.png</code> or <code>1.png</code>) or the name you give in <code>bg</code>. Make the image the same size as your slides.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/pptx_section_slide.html">pptx_section_slide</a></span><span class="op">(</span>level <span class="op">=</span> <span class="fl">1</span>, title <span class="op">=</span> <span class="st">"Results"</span>, bg <span class="op">=</span> <span class="st">"blue"</span>, bg_dir <span class="op">=</span> <span class="st">"backgrounds"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>To add a background to every heading of a level in some existing Markdown, use <code><a href="../reference/add_pptx_backgrounds_to_headers.html">add_pptx_backgrounds_to_headers()</a></code>.</p>
+</section><section class="level2"><h2 id="columns">Columns<a class="anchor" aria-label="anchor" href="#columns"></a>
+</h2>
+<p>Put <code><a href="../reference/pptx_col_start.html">pptx_col_start()</a></code>, <code><a href="../reference/pptx_col_start.html">pptx_col_break()</a></code> and <code><a href="../reference/pptx_col_start.html">pptx_col_end()</a></code> around content to split a slide into two columns. <code>width</code> is each column’s share of the slide, in per cent. In a Quarto document:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="in">`r knittogether::pptx_col_start(width = 40)`</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mtcars<span class="sc">$</span>wt, mtcars<span class="sc">$</span>mpg)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="in">`r knittogether::pptx_col_break(width = 60)`</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(mtcars)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="in">`r knittogether::pptx_col_end()`</span></span></code></pre></div>
+<p>In HTML output the columns are left out and the content runs down the page as normal.</p>
+</section><section class="level2"><h2 id="slide-breaks">Slide breaks<a class="anchor" aria-label="anchor" href="#slide-breaks"></a>
+</h2>
+<p>Every level 1 (<code>#</code>) and level 2 (<code>##</code>) heading starts a new slide, and everything up to the next heading goes on that slide. Unlike HTML slides, PowerPoint won’t shrink text to fit. The only way to make text smaller is to change the template, which affects every slide. Long sections need breaking up.</p>
+<ul>
+<li>
+<code><a href="../reference/slide_break.html">slide_break()</a></code> adds a break where you put it. In converted Markdown you can type <code>`r knittogether::slide_break()`</code> at the right spot.</li>
+<li>
+<code><a href="../reference/auto_slide_break.html">auto_slide_break()</a></code> takes a block of text and breaks it into slides of no more than <code>limit</code> characters (800 by default). It breaks at a sub-heading, the end of a sentence or a paragraph where it can.</li>
+</ul>
+<p>Both do nothing in HTML output. Expect some trial and error before everything fits.</p>
+</section><section class="level2"><h2 id="citations">Citations<a class="anchor" aria-label="anchor" href="#citations"></a>
+</h2>
+<p>Zotero’s Word plugin doesn’t work in PowerPoint, so citations there have to be typed by hand. Add the references to a Zotero collection, copy each one’s citation key, and type it into the slide as <code>[@citekey]</code>. If the keys match your <code>.bib</code> file, they come through to Markdown and the rendered output as ordinary citations. Often it’s simpler to add citations in R instead. See <code><a href="../articles/citations.html">vignette("citations")</a></code> for the bibliography set-up.</p>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);

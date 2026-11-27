@@ -1,13 +1,24 @@
-# This function is a wrapper for the full knittogether workflow
+# Convert, clean and fill a document in one call
 
-This function calls the
+Runs
 [`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
-[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md),
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
 and
 [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
-functions to extract docx or pptx content to markdown, clean this
-markdown, and then replace any placeholders with code generated content,
-simplifying using the workflow.
+in turn. Each step reads the file the step before it wrote, so if you
+give
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+an `output_file`, that's the file that gets filled.
+
+Pass any argument the three functions take, by name, and it goes to
+whichever function has it (an argument such as `placeholder_prefix` goes
+to both functions that use it). Anything you leave out uses that
+function's default. An argument none of them recognises, or one without
+a name, is an error, so a typo is caught.
+
+If `input_file` is a folder, the newest Word or PowerPoint file in it is
+used (see
+[`latest_word_file()`](https://wyuill.github.io/knittogether/reference/latest_word_file.md)).
 
 ## Usage
 
@@ -19,44 +30,39 @@ run_workflow(..., base_name = NULL)
 
 - ...:
 
-  Additional arguments passed to the underlying functions
+  Named arguments for
+  [`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
+  [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+  and
+  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
 
 - base_name:
 
-  Optional. When `input_file` is a folder, only files whose names start
-  with this text are considered.
+  Optional. When `input_file` is a folder, only consider files whose
+  names start with this text.
 
 ## Value
 
-Invisibly returns the updated Markdown (character vector).
-
-## Details
-
-The wrapper determines which arguments belong to which function by
-matching argument names against the formal arguments of
-[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
-[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md),
-and
-[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md).
-Arguments not recognised by any function will be ignored. Defaults for
-all parameters are taken from the underlying functions.
-
-Each step takes the previous step's output as its input. The markdown
-written by
-[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md)
-is cleaned, and the file
-[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
-writes (its `output_file`, if one is given) is the file filled in by
-[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
-So `output_file` in `clean_markdown` is used, not ignored.
-
-If `input_file` is a folder, the newest Word or PowerPoint file in it is
-used, optionally restricted to names that start with `base_name` (see
-[`latest_word_file()`](https://wyuill.github.io/knittogether/reference/latest_word_file.md)).
+The filled Markdown, invisibly, as a character string.
 
 ## See also
 
-[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
-[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md),
+Other workflow:
 [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md),
-[`latest_word_file()`](https://wyuill.github.io/knittogether/reference/latest_word_file.md)
+[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+run_workflow(
+  input_file = "drafts",
+  base_name = "report",
+  markdown_file = "report.md",
+  placeholder_prefix = "placeholder_",
+  heading_offset = TRUE,
+  code_content = placeholder_map(specs = list(plot))
+)
+} # }
+```

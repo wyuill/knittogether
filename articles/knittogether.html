@@ -16,7 +16,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="knittogether_files/libs/quarto-html/popper.min.js"></script><script src="knittogether_files/libs/quarto-html/tippy.umd.min.js"></script><link href="knittogether_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="knittogether_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting started with knittogether">
+<!-- pkgdown --><script src="../pkgdown.js"></script><script src="../extra.js"></script><meta property="og:title" content="Getting started with knittogether">
 <meta property="og:image" content="https://wyuill.github.io/knittogether/logo.png">
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">knittogether</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/citations.html">Using References</a></li>
+<li><a class="dropdown-item" href="../articles/citations.html">Using references</a></li>
     <li><a class="dropdown-item" href="../articles/extended-workflow.html">Extended workflow</a></li>
     <li><a class="dropdown-item" href="../articles/office-styling.html">Office styling and layout</a></li>
     <li><a class="dropdown-item" href="../articles/powerpoint.html">Working with PowerPoint</a></li>
@@ -83,132 +83,196 @@
 
 
 
-    <p>knittogether lets you work seamlessly with colleagues who write in Word or PowerPoint, while you keep analytic content reproducible in R and Quarto.</p>
-<p>The core idea is:</p>
-<ul>
-<li>Your colleagues write content in <strong>Office</strong> (Word/PPT)</li>
-<li>You add <strong>placeholders</strong> where R-generated content should go</li>
-<li>knittogether converts the document → markdown</li>
-<li>You <strong>replace</strong> placeholders with R output (plots, tables, inline values)</li>
-<li>You knit back to <strong>Word, PPT, PDF, HTML</strong>, or any Quarto format</li>
-<li>If needed, the resulting Office document can be edited again and re-imported</li>
-</ul>
-<p>A typical workflow looks like this:</p>
-<p>Office (docx/pptx)</p>
-<p>↓ convert Markdown + media/ folder</p>
-<p>↓ clean Markdown (structured + tidy)</p>
-<p>↓ replace Markdown (with R output inserted)</p>
-<p>↓ render Quarto output (pptx, docx, html, pdf)</p>
-<p>↓ optional Edit in Office</p>
-<p>→ repeat</p>
-<section class="section level2"><h2 id="a-minimal-example">A minimal example<a class="anchor" aria-label="anchor" href="#a-minimal-example"></a>
+    <p>This article follows one report from the first Word draft to the finished output. It explains each step, then shows how to go back and forth with a colleague who edits in Word.</p>
+<section class="level2"><h2 id="three-terms">Three terms<a class="anchor" aria-label="anchor" href="#three-terms"></a>
 </h2>
-<p>Suppose your colleague gives you a <strong>Word document</strong> with text and the following placeholders: <code>placeholder_content_plot</code>, which should contain a plot of your data, and <code>placeholder_content_total_rows</code>, which should give a count of the number of rows in your data.</p>
-<section class="level2"><h3 id="convert-word-to-markdown">1. Convert Word to markdown<a class="anchor" aria-label="anchor" href="#convert-word-to-markdown"></a>
-</h3>
-<p>First we <code>[convert_markdown()]</code> the docx file into a markdown file, extracting the contents and structure as well as images, tables, and citations.</p>
+<p><strong>Placeholder.</strong> Plain text in the Word document that marks where R output should go, such as <code>placeholder_plot</code>. It has two parts: a prefix that every placeholder shares (<code>placeholder_</code>) and an ID that says which piece of content goes there (<code>plot</code>). The prefix is up to you. Set it with <code>placeholder_prefix</code>, and it’s used exactly as you give it, so <code>"xyz_"</code> gives <code>xyz_plot</code>. Pick one that won’t turn up by accident in normal writing, and use the same one throughout. The same placeholder can appear more than once if you need the same output in several places.</p>
+<p><strong>Marker.</strong> When knittogether fills a placeholder, it leaves a small styled tag with the placeholder’s name next to the output. That’s how it finds the output again next time. You control markers with <code>marker_mode</code>.</p>
+<p><strong>Draft block.</strong> While the report is still a draft, each piece of R output is wrapped between <code>DRAFT_CONTENT_START</code> and <code>DRAFT_CONTENT_END</code>. The writer edits around these lines. When you bring the document back in, knittogether swaps each block for its placeholder so it can be filled again with fresh output.</p>
+</section><section class="level2"><h2 id="the-first-pass">The first pass<a class="anchor" aria-label="anchor" href="#the-first-pass"></a>
+</h2>
+<p>Suppose a colleague sends you <code>draft.docx</code>. They’ve typed <code>placeholder_plot</code> where a chart should go and <code>placeholder_total</code> where a count of rows should go.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knittogether</span><span class="fu">::</span><span class="fu"><a href="../reference/convert_markdown.html">convert_markdown</a></span><span class="op">(</span></span>
-<span>  input_file    <span class="op">=</span> <span class="st">"input.docx"</span>,</span>
-<span>  markdown_file <span class="op">=</span> <span class="st">"report.md"</span>,</span>
-<span>  media_base_dir <span class="op">=</span> <span class="st">"media"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wyuill.github.io/knittogether/">knittogether</a></span><span class="op">)</span></span></code></pre></div>
 </div>
-</section><section class="level2"><h3 id="clean-the-markdown">2. Clean the markdown<a class="anchor" aria-label="anchor" href="#clean-the-markdown"></a>
+<section class="level3"><h3 id="convert">1. Convert<a class="anchor" aria-label="anchor" href="#convert"></a>
 </h3>
-<p>Next we <code><a href="../reference/clean_markdown.html">clean_markdown()</a></code> the resulting markdown so that it will be processed correctly by Quarto.</p>
+<p><code><a href="../reference/convert_markdown.html">convert_markdown()</a></code> turns the Word file into Markdown. It keeps the headings, lists, tables, footnotes and citations, and saves the images into a <code>media/</code> folder.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/convert_markdown.html">convert_markdown</a></span><span class="op">(</span></span>
+<span>  input_file <span class="op">=</span> <span class="st">"draft.docx"</span>,</span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"draft.md"</span>,</span>
+<span>  media_base_dir <span class="op">=</span> <span class="st">"."</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>PowerPoint files work the same way. See <code><a href="../articles/powerpoint.html">vignette("powerpoint")</a></code> for the differences.</p>
+</section><section class="level3"><h3 id="clean">2. Clean<a class="anchor" aria-label="anchor" href="#clean"></a>
+</h3>
+<p><code><a href="../reference/clean_markdown.html">clean_markdown()</a></code> fixes things that Word leaves behind and Quarto doesn’t like.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/clean_markdown.html">clean_markdown</a></span><span class="op">(</span></span>
-<span>  markdown_file   <span class="op">=</span> <span class="st">"report.md"</span>,</span>
-<span>  heading_offset  <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"draft.md"</span>,</span>
+<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_"</span>,</span>
+<span>  heading_offset <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  clean_citations <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-</section><section class="level2"><h3 id="create-r-generated-content">3. Create R-generated content<a class="anchor" aria-label="anchor" href="#create-r-generated-content"></a>
+<p>Here <code>heading_offset = TRUE</code> moves every heading down a level, because a Word “Heading 1” would otherwise become the page title in HTML. <code>clean_citations = TRUE</code> removes stray backslashes from citations. Pass your <code>placeholder_prefix</code> so knittogether can tidy up any Word formatting stuck to the placeholders.</p>
+</section><section class="level3"><h3 id="say-what-goes-in-each-placeholder">3. Say what goes in each placeholder<a class="anchor" aria-label="anchor" href="#say-what-goes-in-each-placeholder"></a>
 </h3>
-<p>We then define the content (<code><a href="../reference/define_content.html">define_content()</a></code>) we want to replace the placeholders with and map it to the placeholders (<code><a href="../reference/placeholder_map.html">placeholder_map()</a></code>) so we know what code matches what placeholder.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_content.html">define_content</a></span><span class="op">(</span></span>
-<span>  description    <span class="op">=</span> <span class="st">"A scatterplot"</span>,</span>
-<span>  placeholder_id <span class="op">=</span> <span class="st">"plot"</span>,</span>
-<span>  output_mode    <span class="op">=</span> <span class="st">"chunk"</span>,</span>
-<span>  content        <span class="op">=</span> <span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">iris</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="va">iris</span><span class="op">$</span><span class="va">Sepal.Width</span><span class="op">)</span> <span class="op">}</span>,</span>
-<span>  content_type   <span class="op">=</span> <span class="st">"plot"</span>,</span>
-<span>  chunk_options  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>echo <span class="op">=</span> <span class="cn">FALSE</span>, fig.width <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">rows</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_content.html">define_content</a></span><span class="op">(</span></span>
-<span>  description    <span class="op">=</span> <span class="st">"Number of rows in mtcars"</span>,</span>
-<span>  placeholder_id <span class="op">=</span> <span class="st">"total_rows"</span>,</span>
-<span>  output_mode    <span class="op">=</span> <span class="st">"inline"</span>,</span>
-<span>  content        <span class="op">=</span> <span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">}</span>,</span>
-<span>  content_type   <span class="op">=</span> <span class="st">"text"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">content_map</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/placeholder_map.html">placeholder_map</a></span><span class="op">(</span>specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">plot</span>, <span class="va">rows</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-</section><section class="level2"><h3 id="replace-placeholders-with-real-content">4. Replace placeholders with real content<a class="anchor" aria-label="anchor" href="#replace-placeholders-with-real-content"></a>
-</h3>
-<p>Next we <code><a href="../reference/replace_placeholders.html">replace_placeholders()</a></code> the placeholders with this content and, optionally, validate the content is correct.</p>
+<p><code><a href="../reference/define_content.html">define_content()</a></code> describes one piece of content. <code><a href="../reference/placeholder_map.html">placeholder_map()</a></code> collects them all together.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/replace_placeholders.html">replace_placeholders</a></span><span class="op">(</span></span>
-<span>  markdown_file      <span class="op">=</span> <span class="st">"report.md"</span>,</span>
-<span>  code_content       <span class="op">=</span> <span class="va">content_map</span>,</span>
-<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_content"</span>,</span>
-<span>  validation_path    <span class="op">=</span> <span class="st">"validation"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_content.html">define_content</a></span><span class="op">(</span></span>
+<span>  placeholder_id <span class="op">=</span> <span class="st">"plot"</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Car weight against fuel economy"</span>,</span>
+<span>  output_mode <span class="op">=</span> <span class="st">"chunk"</span>,</span>
+<span>  content <span class="op">=</span> <span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">wt</span>, <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span><span class="op">)</span> <span class="op">}</span>,</span>
+<span>  chunk_options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>echo <span class="op">=</span> <span class="cn">FALSE</span>, fig.width <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">total</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_content.html">define_content</a></span><span class="op">(</span></span>
+<span>  placeholder_id <span class="op">=</span> <span class="st">"total"</span>,</span>
+<span>  description <span class="op">=</span> <span class="st">"Number of cars"</span>,</span>
+<span>  output_mode <span class="op">=</span> <span class="st">"inline"</span>,</span>
+<span>  content <span class="op">=</span> <span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">}</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">content</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/placeholder_map.html">placeholder_map</a></span><span class="op">(</span>specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">plot</span>, <span class="va">total</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>If desired the markdown string can be passed to <code><a href="../reference/accessibility_scan.html">accessibility_scan()</a></code> to check whether alt text or captions are present for all images and tables.</p>
-</section><section class="level2"><h3 id="render-the-quarto-document">5. Render the Quarto document<a class="anchor" aria-label="anchor" href="#render-the-quarto-document"></a>
-</h3>
-<p>Finally, we can render the resulting file into whatever format we want to output from Quarto. In your .qmd (e.g., report.qmd), include: {{{ &lt; include report.md &gt; }}} and then render with <code>quarto::quarto_render("report.qmd")</code>. Or, <code>[replace_placeholders()]</code> invisibly returns the contents of the markdown so it can be inserted directly into a Quarto file.</p>
-<p>If you don’t want to run each step individually you can use <code><a href="../reference/run_workflow.html">run_workflow()</a></code> to run them all at once. Each step reads the output of the step before it. Pass a folder as <code>input_file</code> to use its newest Word file, optionally narrowed with <code>base_name</code>. See the Working with versions section of the README for keeping earlier versions.</p>
-<p>A fuller, ready-to-run example is provided in <code><a href="../articles/extended-workflow.html">vignette("extended-workflow")</a></code>. Other vignettes provide guidance on working with PowerPoint, citations, and setting up Office document styling.</p>
-</section></section><section class="section level2"><h2 id="concepts">Concepts<a class="anchor" aria-label="anchor" href="#concepts"></a>
-</h2>
-<p>Understanding a few core ideas helps make sense of the workflow.</p>
-<section class="level2"><h3 id="placeholders">Placeholders<a class="anchor" aria-label="anchor" href="#placeholders"></a>
-</h3>
-<p>Placeholders are unique strings in Word or PowerPoint that indicate where R-generated content should go. For example <code>placeholder_content_plot</code>.</p>
-<p>They have two parts:</p>
+<p><code>output_mode</code> decides how the content goes in:</p>
 <ul>
 <li>
-<strong>prefix:</strong> This is shared across all placeholders and identifies that it is to be replaced (e.g., <code>"placeholder_content"</code>)</li>
+<code>"inline"</code> puts a value inside a sentence, as inline R code.</li>
 <li>
-<strong>identifier:</strong> This tells knittogether which content to replace it with (<code>"plot"</code>)</li>
+<code>"chunk"</code> puts a code chunk on its own line, for plots, tables or anything longer.</li>
+<li>
+<code>"asis"</code> pastes in text exactly as you give it.</li>
 </ul>
-<p>Placeholders must use a shared prefix and should be unlikely to appear accidentally. They do not have to be unique if the same content is needed in multiple places.</p>
-</section><section class="level2"><h3 id="defining-and-mapping-content">Defining and mapping content<a class="anchor" aria-label="anchor" href="#defining-and-mapping-content"></a>
-</h3>
-<p><code><a href="../reference/define_content.html">define_content()</a></code> tells knittogether what to insert and how to insert it. Content can either be a single scalar (e.g. a number or string) which are inserted inline or a chunk (e.g. a plot, table, child Quarto document, or code block) which are inserted on a new line.</p>
-<p><code><a href="../reference/placeholder_map.html">placeholder_map()</a></code> combines all content definitions into a single object ready to replace the placeholders in the document.</p>
-<p>When defining large or complex content it is advisable to use functions or ‘child’ documents and using the <a href="https://quarto.org/docs/authoring/includes.html" class="external-link">includes</a> feature of Quarto. Important considerations for doing this are:</p>
-<ul>
-<li>Keeping parent .qmd, child files, and markdown output in the same directory to avoid filepath issues when rendering.</li>
-<li>Avoiding YAML in the child files where it may conflict with the parent document (e.g., <code>format</code>).</li>
-<li>Ensuring data required by children or functions is available in the environment they are rendered in.</li>
-</ul>
-<p>These can be added to the content argument of <code>[define_content()]</code> as <code>content= "{{&lt; include child_plot.qmd &gt;}}"</code>.</p>
-</section></section><section class="section level2"><h2 id="working-iteratively">Working Iteratively<a class="anchor" aria-label="anchor" href="#working-iteratively"></a>
-</h2>
-<p>You may find yourself going back and forth between Quarto and Word/PowerPoint. To make this easier you can use use draft mode to show the output of the code while keeping the placeholders.</p>
+<p>The code in <code>content</code> isn’t run yet. It’s written into the Markdown and runs when Quarto renders the document.</p>
+<p><code>description</code> is optional but worth adding. It goes into the validation log (see step 4), which makes it much easier to check the right output has landed in the right place.</p>
+<p>For a plain value that doesn’t need a description, you can skip <code><a href="../reference/define_content.html">define_content()</a></code> and pass it straight to the map:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">content</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/placeholder_map.html">placeholder_map</a></span><span class="op">(</span>specs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">plot</span><span class="op">)</span>, scalars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>total <span class="op">=</span> <span class="fl">32</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>For longer pieces of analysis, put the code in a separate Quarto file and <a href="https://quarto.org/docs/authoring/includes.html" class="external-link">include it</a>, for example <code>content = "{{&lt; include child_plot.qmd &gt;}}"</code>. A few things help this go smoothly:</p>
+<ul>
+<li>Keep the main <code>.qmd</code>, the child files and the Markdown in the same folder, so relative paths work when you render.</li>
+<li>Leave the YAML header out of child files, so settings such as <code>format</code> don’t clash with the main document.</li>
+<li>Make sure any data the child file uses has been loaded before it runs.</li>
+</ul></section><section class="level3"><h3 id="fill-the-placeholders">4. Fill the placeholders<a class="anchor" aria-label="anchor" href="#fill-the-placeholders"></a>
+</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/replace_placeholders.html">replace_placeholders</a></span><span class="op">(</span></span>
-<span>  markdown_file    <span class="op">=</span> <span class="st">"report.md"</span>,</span>
-<span>  code_content     <span class="op">=</span> <span class="va">content_map</span>,</span>
-<span>  draft_mode       <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  draft_mode_prefix <span class="op">=</span> <span class="st">"DRAFT_CONTENT_START"</span>,</span>
-<span>  draft_mode_suffix <span class="op">=</span> <span class="st">"DRAFT_CONTENT_END"</span>,</span>
-<span>  marker_mode      <span class="op">=</span> <span class="st">"hidden"</span></span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"draft.md"</span>,</span>
+<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_"</span>,</span>
+<span>  code_content <span class="op">=</span> <span class="va">content</span>,</span>
+<span>  validation_path <span class="op">=</span> <span class="st">"validation"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>In Word, placeholders can be configured to a “hidden” character style can be shown/hidden using ¶ to aid readability as shown in <code><a href="../articles/office-styling.html">vignette("office-styling")</a></code>.</p>
-</section><script id="quarto-html-after-body" type="application/javascript">
+<p>Each placeholder is swapped for its content. With <code>validation_path</code> set, knittogether also writes a log of which placeholders it found and filled, and what changed since the last run. If the <code>quarto</code> and <code>reactable</code> packages are installed you also get an HTML page that’s easier to browse. Smaller, more specific placeholders give you a more useful log.</p>
+<p>To check that every image and table has alt text or a caption, pass the Markdown to <code><a href="../reference/accessibility_scan.html">accessibility_scan()</a></code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/accessibility_scan.html">accessibility_scan</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="st">"draft.md"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="level3"><h3 id="render">5. Render<a class="anchor" aria-label="anchor" href="#render"></a>
+</h3>
+<p>Include the Markdown in a Quarto document and render it:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "My report"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> docx</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>{{&lt; include draft.md &gt;}}</span></code></pre></div>
+<p>Rendering to Word gives your colleague a draft with the R output in place. You can render the same file to HTML, PDF or PowerPoint by changing <code>format</code>.</p>
+<p><code><a href="../reference/replace_placeholders.html">replace_placeholders()</a></code> also returns the Markdown invisibly, so you can insert it into a Quarto document directly instead of using an include.</p>
+<p>Quarto can’t include a file that doesn’t exist yet, so the Markdown has to be built before each render. In a Quarto project you can make this happen automatically. Put the steps above in a script, say <code>build.R</code>, and add this to <code>_quarto.yml</code>:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">project</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pre-render</span><span class="kw">:</span><span class="at"> Rscript build.R</span></span></code></pre></div>
+</section></section><section class="level2"><h2 id="going-back-and-forth-with-word">Going back and forth with Word<a class="anchor" aria-label="anchor" href="#going-back-and-forth-with-word"></a>
+</h2>
+<p>By default, <code><a href="../reference/replace_placeholders.html">replace_placeholders()</a></code> runs with <code>draft_mode = TRUE</code> and <code>marker_mode = "hidden"</code>. That’s what makes the round trip work: each piece of output sits in a draft block with a marker naming its placeholder.</p>
+<p>When your colleague has edited the Word draft and sent it back:</p>
+<ol type="1">
+<li><p><strong>Convert the new version.</strong> If they save new copies into a folder, <code>latest_word_file("drafts")</code> finds the most recent one.</p></li>
+<li>
+<p><strong>Clean it with <code>clear_draft = TRUE</code>.</strong> This turns each draft block back into its placeholder. Use the same <code>placeholder_prefix</code> you filled the draft with. If you don’t, the placeholders won’t be recognised and the draft content is removed with nothing to refill it.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/clean_markdown.html">clean_markdown</a></span><span class="op">(</span></span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"draft.md"</span>,</span>
+<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_"</span>,</span>
+<span>  clear_draft <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</li>
+<li><p><strong>Fill the placeholders again</strong> with <code><a href="../reference/replace_placeholders.html">replace_placeholders()</a></code>. Your output is refreshed, not duplicated, so you can update the analysis at the same time.</p></li>
+</ol>
+<p>Ask your colleague to leave the <code>DRAFT_CONTENT_START</code> and <code>DRAFT_CONTENT_END</code> lines alone. Everything around them is theirs to edit. If those lines get in the way, you can set up a Word style that hides them until you press ¶. <code><a href="../articles/office-styling.html">vignette("office-styling")</a></code> shows how, and the package includes an example document already set up this way:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"PlaceholderMarker_example.docx"</span>, package <span class="op">=</span> <span class="st">"knittogether"</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="level2"><h2 id="the-final-version">The final version<a class="anchor" aria-label="anchor" href="#the-final-version"></a>
+</h2>
+<p>When the words are final, fill the placeholders one last time with draft mode and markers turned off:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/replace_placeholders.html">replace_placeholders</a></span><span class="op">(</span></span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"draft.md"</span>,</span>
+<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_"</span>,</span>
+<span>  code_content <span class="op">=</span> <span class="va">content</span>,</span>
+<span>  draft_mode <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  marker_mode <span class="op">=</span> <span class="st">"off"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>You can run this straight on the latest draft: any draft blocks are removed first. The result has no placeholder names or markers left in it.</p>
+<p>Only do this at the end. With <code>marker_mode = "off"</code> there’s nothing left to show where the output came from, so a document rendered this way can’t be brought back in and refreshed.</p>
+</section><section class="level2"><h2 id="keeping-earlier-versions">Keeping earlier versions<a class="anchor" aria-label="anchor" href="#keeping-earlier-versions"></a>
+</h2>
+<p>By default each step overwrites its file. To keep a history instead, give <code><a href="../reference/clean_markdown.html">clean_markdown()</a></code> or <code><a href="../reference/replace_placeholders.html">replace_placeholders()</a></code> an <code>output_file</code>, and use <code><a href="../reference/timestamped_path.html">timestamped_path()</a></code> to add the date and time to the name:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/replace_placeholders.html">replace_placeholders</a></span><span class="op">(</span></span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"draft.md"</span>,</span>
+<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_"</span>,</span>
+<span>  code_content <span class="op">=</span> <span class="va">content</span>,</span>
+<span>  output_file <span class="op">=</span> <span class="fu"><a href="../reference/timestamped_path.html">timestamped_path</a></span><span class="op">(</span><span class="st">"drafts/draft.md"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>Set <code>overwrite = FALSE</code> if you’d rather get an error than overwrite an existing file.</p>
+</section><section class="level2"><h2 id="running-every-step-at-once">Running every step at once<a class="anchor" aria-label="anchor" href="#running-every-step-at-once"></a>
+</h2>
+<p><code><a href="../reference/run_workflow.html">run_workflow()</a></code> runs convert, clean and replace in one call. Give it any argument the three functions take. Each step uses the previous step’s output. If you give a folder as <code>input_file</code>, it uses the newest Word or PowerPoint file in it, and <code>base_name</code> narrows the choice to files whose names start with that text.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/run_workflow.html">run_workflow</a></span><span class="op">(</span></span>
+<span>  input_file <span class="op">=</span> <span class="st">"drafts"</span>,</span>
+<span>  base_name <span class="op">=</span> <span class="st">"report"</span>,</span>
+<span>  markdown_file <span class="op">=</span> <span class="st">"report.md"</span>,</span>
+<span>  placeholder_prefix <span class="op">=</span> <span class="st">"placeholder_"</span>,</span>
+<span>  heading_offset <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  code_content <span class="op">=</span> <span class="va">content</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="level2"><h2 id="where-next">Where next<a class="anchor" aria-label="anchor" href="#where-next"></a>
+</h2>
+<ul>
+<li>
+<code><a href="../articles/extended-workflow.html">vignette("extended-workflow")</a></code> is a complete example you can copy and run.</li>
+<li>
+<code><a href="../articles/office-styling.html">vignette("office-styling")</a></code> covers setting up Word files so they convert cleanly.</li>
+<li>
+<code><a href="../articles/powerpoint.html">vignette("powerpoint")</a></code> covers slides.</li>
+<li>
+<code><a href="../articles/citations.html">vignette("citations")</a></code> covers keeping Zotero references working.</li>
+</ul></section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);

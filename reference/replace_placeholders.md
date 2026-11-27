@@ -1,41 +1,31 @@
-# Replace placeholders in a Markdown / Quarto document
+# Fill placeholders with R content
 
-Replace tokens of the form `<placeholder_prefix>_<slug>` using scalars
-or `content_spec` from
-[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md).
-Execution is deferred to knitr/Quarto.
+Swaps each placeholder (`placeholder_prefix` followed by an ID) in a
+Markdown file for the content given in `code_content`. Code isn't run
+here. It's written into the Markdown as inline R or a chunk, and runs
+when Quarto renders the document.
 
-### Marker behavior
-
-One (and only one) marker is emitted per replacement, **independent of
-`draft_mode`**, controlled by `marker_mode`:
-
-- `"hidden"` (default): `[token]{custom-style="PlaceholderMarker"}`
-
-- `"show"`: `[token]{custom-style="PlaceholderMarkerVisible"}`
-
-- `"off"`: *(no marker)*
-
-For DOCX, define both character styles in your reference DOCX. For HTML,
-hide hidden markers by including the following CSS in your document:
-`span[data-custom-style="PlaceholderMarker"] { display: none !important; }`
-
-### Draft mode
-
-If `draft_mode = TRUE`, the placeholder is bookended with markers. For
-example, a block would appear as:
+Each piece of content is written with a marker naming its placeholder
+(see `marker_mode`) and, in draft mode, wrapped in draft markers:
 
     DRAFT_CONTENT_START
-    <marker if any>
+    <marker>
     <content>
     DRAFT_CONTENT_END
+
+Together these let
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+turn the content back into its placeholder when the document returns
+from Word, so it can be filled again.
+[`vignette("knittogether")`](https://wyuill.github.io/knittogether/articles/knittogether.md)
+explains the round trip.
 
 ## Usage
 
 ``` r
 replace_placeholders(
   markdown_file,
-  placeholder_prefix = "placeholder_content",
+  placeholder_prefix = "placeholder_",
   code_content = list(),
   draft_mode = TRUE,
   draft_mode_prefix = "DRAFT_CONTENT_START",
@@ -56,136 +46,135 @@ replace_placeholders(
 
 - markdown_file:
 
-  Path to the Markdown/Quarto file (overwritten).
+  Path to the Markdown file to fill.
 
 - placeholder_prefix:
 
-  Character prefix identifying the placeholder. Defaults to
-  `"placeholder_content"`.
+  The text every placeholder starts with, used exactly as given. The
+  placeholder is the prefix followed by the ID, so the default
+  `"placeholder_"` with the ID `plot` gives `placeholder_plot`. Choose
+  any prefix that won't appear by accident in normal writing, such as
+  `"knit_"` or `"xyz_"`. Use the same prefix in
+  [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+  and `replace_placeholders()`. Defaults to `"placeholder_"`.
 
 - code_content:
 
-  Named list mapping slugs to scalars or `content_spec`. Defaults to an
-  empty list.
+  The content for each placeholder, as made by
+  [`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md).
 
 - draft_mode:
 
-  Logical; if `TRUE`, wrap in plain draft markers. Defaults to `TRUE`.
-  Keep this on for any document that will be read back from Word: the
-  draft markers are how the inserted content is found and cleared on the
-  next pass (see
-  [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)).
-  With `FALSE` the output has no draft markers: any draft blocks already
-  in the file are reduced to their placeholders and filled in, so a
-  final render can be run straight from a draft.
+  Logical. If `TRUE` (the default), wrap each piece of content in draft
+  markers. Keep this on while the document is still going back to Word.
+  If `FALSE`, no draft markers are written, and any draft blocks already
+  in the file are turned back into placeholders and filled, so you can
+  make the final version straight from a draft.
 
 - draft_mode_prefix, draft_mode_suffix:
 
-  Strings for draft boundaries. Defaults to `"DRAFT_CONTENT_START"` and
-  `"DRAFT_CONTENT_END"` respectively. These are used instead of
-  `--DRAFT_CONTENT--` because Word turns `--` into a dash, which stopped
-  the markers being found on re-import. Documents made with the old
-  markers need them replaced before they are cleaned.
+  The lines that start and end a draft block. Defaults to
+  `"DRAFT_CONTENT_START"` and `"DRAFT_CONTENT_END"`. Avoid `--`, which
+  Word turns into a dash.
 
 - validation_path:
 
-  Optional directory for a CSV log of what has been replaced. Setting
-  this to `NULL` disables the creation of the log. Defaults to `NULL`.
+  Folder for the validation log, a CSV of which placeholders were found
+  and filled and what changed since the last run. If the `quarto` and
+  `reactable` packages are installed, an HTML version is made too.
+  Defaults to `NULL`, which writes no log.
 
 - marker_mode:
 
-  Controls the styling, if any, applied to placeholder markers. One of:
+  How the marker naming each placeholder is written:
 
-  - `"hidden"` (default) where markers are included but the
-    `PlaceholderMarker` style is applied, for example,
-    `[placeholder_content_value]{custom-style="PlaceholderMarker"}`,
+  - `"hidden"` (the default) uses the `placeholder_style_hidden` style,
+    which can be set to hidden text in Word.
 
-  - `"show"` where markers are included and the
-    `PlaceholderMarkerVisible` style is applied, for example,
-    `[placeholder_content_value]{custom-style="PlaceholderMarkerVisible"}`,
+  - `"show"` uses the `placeholder_style_visible` style.
 
-  - `"off"` where no marker is written at all. Nothing is left in the
-    document to say where the inserted content came from. Use this only
-    when the document will not be read back in from Word, because
-    content inserted with `"off"` cannot be found and refreshed on a
-    later import. The marker is not replaced with a plain placeholder
-    token; the inserted content is all that remains. The names of the
-    relevant styles are defined in `placeholder_style_hidden` and
-    `placeholder_style_visible`.
+  - `"off"` writes no marker. Use this only for the final version:
+    nothing is left to show where the content came from, so it can't be
+    refreshed after another round in Word.
+
+  In HTML output,
+  [`hide_markers_css()`](https://wyuill.github.io/knittogether/reference/hide_markers_css.md)
+  hides the markers.
 
 - placeholder_style_hidden, placeholder_style_visible:
 
-  The names of the styles used for hidden/visible markers as applied in
-  `marker_mode`. Defaults to `"PlaceholderMarker"` and
-  `"PlaceholderMarkerVisible"` respectively. An example of a Word
-  document with these styles is included within the package. Run the
-  following code to access it:
+  Names of the Word character styles used for markers. Defaults to
+  `"PlaceholderMarker"` and `"PlaceholderMarkerVisible"`. The package
+  includes a Word document with both styles set up:
+  `system.file("extdata", "PlaceholderMarker_example.docx", package = "knittogether")`.
 
+- log_file, html_file:
 
-      path <- system.file("extdata", "PlaceholderMarker_example.docx",
-                          package = "knittogether")
-      utils::browseURL(path)
-
-- log_file:
-
-  CSV log file name (within `validation_path`) to be generated and to
-  read (if already exists). If `NULL` the log is not generated. Defaults
-  to `"quality_log.csv"`.
-
-- html_file:
-
-  HTML report file name (within `validation_path`) to be generated. If
-  this already exists it will be overwritten. If `NULL` the report is
-  not generated. Default: `"validation.html"`.
+  File names for the validation log and its HTML version, inside
+  `validation_path`. Set either to `NULL` to skip it. Defaults to
+  `"quality_log.csv"` and `"validation.html"`.
 
 - output_file_ext:
 
-  The extension for the output file. Typically, `'md'` but Quarto can
-  sometimes raise errors if it detects executable code in markdown and
-  require a '.qmd' file instead, regardless of whether there is
-  executable code present. Defaults to `'md'`.
+  Extension for the output file when `output_file` isn't given. Defaults
+  to `"md"`. Use `"qmd"` if Quarto complains about executable code in a
+  `.md` file.
 
 - output_file:
 
-  Optional path to write the result to. `markdown_file` is then left
-  unchanged, and `output_file_ext` is ignored. Defaults to `NULL`, which
-  writes next to `markdown_file` as before.
+  Path to write the result to, leaving the input file unchanged.
+  Defaults to `NULL`, which writes to `markdown_file` (with its
+  extension changed to `output_file_ext`).
 
 - overwrite:
 
-  Logical; if `FALSE`, stop rather than write over an existing output
-  file. Defaults to `TRUE`, so existing scripts keep overwriting. Use
+  Logical. If `FALSE`, stop rather than write over an existing file.
+  Defaults to `TRUE`. Use
   [`timestamped_path()`](https://wyuill.github.io/knittogether/reference/timestamped_path.md)
   to keep earlier versions.
 
 ## Value
 
-Invisibly returns the updated Markdown (character vector).
+The filled Markdown, invisibly, as a character string.
+
+## See also
+
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md),
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md),
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+
+Other workflow:
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md),
+[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
+[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
-spec <- define_content(
-  description     = "A plot of mtcars",
-  placeholder_id  = "mtcarsplot",
-  output_mode     = "chunk",
-  content         = { plot(mtcars$wt, mtcars$mpg) },
-  content_type    = "plot",
-  chunk_options   = list(echo = FALSE, fig.width = 7)
+plot <- define_content(
+  placeholder_id = "plot",
+  description = "Car weight against fuel economy",
+  output_mode = "chunk",
+  content = { plot(mtcars$wt, mtcars$mpg) },
+  chunk_options = list(echo = FALSE)
 )
-code_map <- placeholder_map(specs = list(spec))
+
+# While the document is still a draft
 replace_placeholders(
-  markdown_file = "markdown_output.md",
-  placeholder_prefix = "placeholder_content",
-  code_content = code_map,
-  draft_mode = TRUE,
-  draft_mode_prefix = "DRAFT_CONTENT_START",
-  draft_mode_suffix = "DRAFT_CONTENT_END",
-  validation_path = "validation",
-  marker_mode = "hidden",
-  placeholder_style_hidden = "PlaceholderMarker",
-  placeholder_style_visible = "PlaceholderMarkerVisible"
-  )
+  markdown_file = "draft.md",
+  placeholder_prefix = "placeholder_",
+  code_content = placeholder_map(specs = list(plot)),
+  validation_path = "validation"
+)
+
+# The final version
+replace_placeholders(
+  markdown_file = "draft.md",
+  placeholder_prefix = "placeholder_",
+  code_content = placeholder_map(specs = list(plot)),
+  draft_mode = FALSE,
+  marker_mode = "off"
+)
 } # }
 ```

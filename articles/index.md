@@ -3,7 +3,7 @@
 ### All vignettes
 
 - [Using
-  References](https://wyuill.github.io/knittogether/articles/citations.md):
+  references](https://wyuill.github.io/knittogether/articles/citations.md):
 - [Extended
   workflow](https://wyuill.github.io/knittogether/articles/extended-workflow.md):
 - [Getting started with

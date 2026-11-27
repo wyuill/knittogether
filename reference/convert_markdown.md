@@ -1,10 +1,10 @@
-# Convert a Word or PowerPoint file to Markdown using Pandoc
+# Convert a Word or PowerPoint file to Markdown
 
-Converts a Microsoft Word (`.docx`) or PowerPoint (`.pptx`) file to
-Markdown using Pandoc. Media (e.g., embedded images) and citations can
-be extracted if requested. The function returns the path to the
-generated Markdown file and, optionally, the directory where media was
-saved
+Uses Pandoc to turn a `.docx` or `.pptx` file into Markdown, keeping
+headings, lists, tables, footnotes and citations, and saving the images
+into a `media/` folder. Run
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+on the result next.
 
 ## Usage
 
@@ -24,71 +24,63 @@ convert_markdown(
 
 - input_file:
 
-  Path to the input file to convert. Must be a `.docx` or `.pptx` file.
+  Path to the `.docx` or `.pptx` file.
 
 - markdown_file:
 
-  Path to the output Markdown file. The file will be overwritten if it
-  already exists. Defaults to `"markdown_output.md"`.
+  Path for the Markdown file. Defaults to `"markdown_output.md"`.
 
 - media_base_dir:
 
-  Path to the **base directory** where extracted media should be saved.
-  Pandoc will create a subfolder named `media/` inside this directory
-  (e.g., `path/to/base/media/`) and extract all embedded media files
-  here. The directory is only created if media is present in the input
-  file.
-
-  - Set to `NULL` to disable media extraction entirely.
-
-  - Set to `"."` (the default) to extract media into the current working
-    directory `./media/`.
+  Folder to save images in. Pandoc creates a `media/` folder inside it,
+  but only if the document has images. Defaults to `"."`, the working
+  directory. Use `NULL` to skip saving images.
 
 - pandoc_args:
 
-  Additional command-line arguments passed to Pandoc, for example
-  `"--wrap=none"` or `"--to=markdown+pipe_tables+grid_tables"`. Provide
-  as a single string or character vector. Non-default markdown targets
-  can change citation escaping, so
-  `clean_markdown(clean_citations = TRUE)` may be useful downstream.
-  Defaults to `NULL`.
+  Extra Pandoc arguments, as a string or character vector, for example
+  `"--wrap=none"`, or `"-t gfm"` for tables with long text. Some
+  Markdown flavours add escaping to citations, which
+  `clean_markdown(clean_citations = TRUE)` removes. Defaults to `NULL`.
 
 - pandoc_version:
 
-  Pandoc version to use. Passed directly to
+  Which Pandoc to use, passed to
   [`pandoc::pandoc_run()`](https://cderv.github.io/pandoc/reference/pandoc_run.html).
-  Defaults to `"default"`. If the default Pandoc is missing or older
-  than 3.8.3, a Pandoc bundled with RStudio/Positron (`RSTUDIO_PANDOC`)
-  or Quarto that meets 3.8.3 is used instead. `"latest"` can select a
-  Pandoc that doesn't match the bundled one, so it is not the default.
+  Defaults to `"default"`. If that Pandoc is missing or older than 3.8.3
+  (needed for PowerPoint), the one bundled with RStudio, Positron or
+  Quarto is used instead.
 
 - verbose:
 
-  Logical. If `TRUE`, prints informative messages about the Pandoc
-  command being executed and the location of extracted media (if any).
-  Defaults to `FALSE`.
+  Logical. If `TRUE`, print the Pandoc command and where images were
+  saved. Defaults to `FALSE`.
 
 - overwrite:
 
-  Logical; if `FALSE`, stop rather than write over an existing
+  Logical. If `FALSE`, stop rather than write over an existing
   `markdown_file`. Defaults to `TRUE`. Use
   [`timestamped_path()`](https://wyuill.github.io/knittogether/reference/timestamped_path.md)
   to keep earlier versions.
 
 ## Value
 
-Invisibly returns a named list with:
+Invisibly, a list with `markdown_file` (the path to the Markdown) and
+`media_dir` (the path to the `media/` folder, or `NULL` if no images
+were saved).
 
-- `markdown_file` – the path to the created Markdown file
+## See also
 
-- `media_dir` – the path to the created `media/` directory, or `NULL` if
-  media extraction was disabled or no media was present
+Other workflow:
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md),
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md),
+[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
-  convert_markdown("report.docx", pandoc_version = "latest")
-  convert_markdown("slides.pptx", media_base_dir = "slides_output")
+convert_markdown("draft.docx", markdown_file = "draft.md")
+convert_markdown("slides.pptx", markdown_file = "slides.md", media_base_dir = "slides")
 } # }
 ```

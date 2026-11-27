@@ -1,8 +1,8 @@
-# Add a Background Image to All Headers of Selected Levels in a String
+# Add a background image to headings in Markdown
 
-Scans a Markdown/Quarto text string, finds headers, and inserts or
-replaces a `background-image` attribute on all headers whose level is in
-`levels`.
+Adds a background image to every heading of the given levels in `text`,
+for example all section slides in converted Markdown. Headings inside
+code blocks are left alone.
 
 ## Usage
 
@@ -14,25 +14,43 @@ add_pptx_backgrounds_to_headers(text, levels = 1, bg, bg_dir, overwrite = TRUE)
 
 - text:
 
-  Markdown/Quarto content as a single string.
+  A single string of Markdown.
 
 - levels:
 
-  Integer vector of header levels to target.
+  The heading levels to change. Defaults to 1.
 
 - bg:
 
-  The name of the background image file (without extension e.g.,
-  `"blue"` rather than `"blue.png"`).
+  The image's file name without the extension, for example `"blue"` for
+  `blue.png`.
 
 - bg_dir:
 
-  Directory where background files live.
+  The folder that holds the background images.
 
 - overwrite:
 
-  Replace an existing `background-image` attribute?
+  Logical. If `TRUE` (the default), replace a background a heading
+  already has.
 
 ## Value
 
-Modified text string with updated headers.
+`text`, with the background added to those headings.
+
+## See also
+
+Other PowerPoint:
+[`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md),
+[`insert_slide_break()`](https://wyuill.github.io/knittogether/reference/insert_slide_break.md),
+[`pptx_col_start()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md),
+[`pptx_section_slide()`](https://wyuill.github.io/knittogether/reference/pptx_section_slide.md),
+[`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+add_pptx_backgrounds_to_headers(text, levels = 1, bg = "blue", bg_dir = "backgrounds")
+} # }
+```

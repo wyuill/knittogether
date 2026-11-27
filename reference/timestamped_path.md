@@ -1,4 +1,4 @@
-# Build a timestamped file name that does not overwrite an existing file
+# Add the date and time to a file name
 
 Adds the current time to a file name, for example `report.docx` becomes
 `report_20261127_093015.docx`, so each output is kept and the input is
@@ -34,6 +34,7 @@ A path that does not yet exist.
 
 ## See also
 
+Other versions:
 [`latest_word_file()`](https://wyuill.github.io/knittogether/reference/latest_word_file.md)
 
 ## Examples

@@ -1,6 +1,6 @@
-# Detect output format
+# Name the format being rendered
 
-Detect output format
+Name the format being rendered
 
 ## Usage
 
@@ -10,4 +10,17 @@ output_type()
 
 ## Value
 
-String identifying output type.
+One of `"pptx"`, `"docx"`, `"pdf"`, `"html"` or `"unknown"`.
+
+## See also
+
+Other output format:
+[`hide_markers_css()`](https://wyuill.github.io/knittogether/reference/hide_markers_css.md),
+[`is_pptx()`](https://wyuill.github.io/knittogether/reference/is_html.md)
+
+## Examples
+
+``` r
+output_type()
+#> [1] "unknown"
+```

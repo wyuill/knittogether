@@ -1,5 +1,65 @@
 # Changelog
 
+## knittogether 0.1.5.2
+
+### Breaking changes
+
+- `placeholder_prefix` is now used exactly as given, and the default is
+  `"placeholder_"`. The placeholder is the prefix followed by the ID,
+  with nothing added between them: `"placeholder_"` with the ID `plot`
+  gives `placeholder_plot`, and `"xyz_"` gives `xyz_plot`. Previously an
+  underscore was always added and the default was
+  `"placeholder_content"`. To keep using `placeholder_content_plot`,
+  pass `placeholder_prefix = "placeholder_content_"`. This affects
+  [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md),
+  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+  and
+  [`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md).
+
+### Bug fixes
+
+- The package no longer errors on load when Quarto isn’t installed.
+  [`quarto::quarto_path()`](https://quarto-dev.github.io/quarto-r/reference/quarto_path.html)
+  returns `NULL` rather than `NA` in that case, which the Pandoc check
+  didn’t handle.
+- The README flowchart now renders on the pkgdown site. pkgdown doesn’t
+  load Mermaid, so `pkgdown/extra.js` now does.
+
+### Documentation
+
+- Help pages are rewritten in plain language. Arguments shared by
+  [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+  and
+  [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+  are documented once and inherited. Internal helpers no longer get help
+  pages. Every exported function has a `@return`, and the content and
+  PowerPoint helpers have examples that run.
+- The pkgdown reference page is grouped into workflow, defining content,
+  versions, PowerPoint, output format, and checking and long documents.
+- The README and vignettes are rewritten in plainer language, and each
+  topic is explained in one place. The README gives the pitch,
+  installation and a short example. The getting-started vignette is now
+  the one place that explains the terms (placeholder, marker, draft
+  block), the round trip with Word, the final render and keeping
+  versions. The other vignettes link to it instead of repeating it.
+- Fixed errors in the vignettes: a broken include shortcode and links in
+  getting started; example blocks in the extended-workflow and
+  PowerPoint vignettes that knitr ran instead of displaying;
+  `create_base_files()` failing because `render` had no default; and an
+  include of `workflow/example.qmd`, a file that is never created.
+- [`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
+  docs now say that unrecognised arguments are an error, not ignored.
+
+## knittogether 0.1.5.1
+
+### Bug fixes
+
+- [`split_markdown()`](https://wyuill.github.io/knittogether/reference/split_markdown.md)
+  numbers repeated headings without
+  [`stats::ave()`](https://rdrr.io/r/stats/ave.html), so `R CMD check`
+  no longer gives a “no visible global function definition” NOTE. The
+  output folder names are unchanged.
+
 ## knittogether 0.1.5
 
 ### Breaking changes

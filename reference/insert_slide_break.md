@@ -1,6 +1,12 @@
-# Insert a Slide Break After a Character Limit
+# Break text into a new slide once, before a character limit
 
-Inserts a slide break at the closest clean boundary before `limit`.
+If `text` is longer than `limit` characters, adds one slide break at the
+best place before the limit. It looks, in order, for a heading that
+doesn't start a slide by itself (level 3 to 6 by default), the end of a
+sentence, a paragraph break or a space, and cuts at `limit` only if it
+finds none. A heading at the very start of `text` is ignored.
+[`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md)
+repeats this until the whole text fits.
 
 ## Usage
 
@@ -17,35 +23,38 @@ insert_slide_break(
 
 - text:
 
-  A character string.
+  A single string of Markdown.
 
 - limit:
 
-  Character width before attempting a break.
+  Maximum number of characters before a break. Defaults to 800.
 
 - break_fun:
 
-  Function returning the slide break marker.
+  A function that returns the slide break. Defaults to
+  [`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md).
 
 - slide_levels:
 
-  Integer vector of header levels that automatically start new slides
-  (default: c(1, 2)).
+  Heading levels that already start a new slide. Defaults to `c(1, 2)`.
 
 ## Value
 
-Modified text with a slide break inserted.
+`text`, with a slide break added if it was longer than `limit`.
 
-## Details
+## See also
 
-Break priority order:
+Other PowerPoint:
+[`add_pptx_backgrounds_to_headers()`](https://wyuill.github.io/knittogether/reference/add_pptx_backgrounds_to_headers.md),
+[`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md),
+[`pptx_col_start()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md),
+[`pptx_section_slide()`](https://wyuill.github.io/knittogether/reference/pptx_section_slide.md),
+[`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md)
 
-1.  Non-slide header levels (e.g., 3–6)
+## Examples
 
-2.  Sentence boundary
-
-3.  Paragraph break
-
-4.  Word boundary
-
-5.  Hard cut at `limit`
+``` r
+text <- paste(rep("A sentence of text.", 60), collapse = " ")
+insert_slide_break(text, limit = 200, break_fun = function() "---")
+#> [1] "A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. \n\n---\n\nA sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text. A sentence of text."
+```

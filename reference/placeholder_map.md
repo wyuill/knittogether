@@ -1,12 +1,10 @@
-# Create a list of Placeholders with their Content for [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+# Collect the content for every placeholder
 
-Constructs a named list for use in
+Combines content made with
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md),
+and any plain values, into the list that
 [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
-by:
-
-- extracting slugs from each `content_spec` in `specs`;
-
-- using names of scalar values from `scalars`.
+takes as `code_content`.
 
 ## Usage
 
@@ -18,22 +16,60 @@ placeholder_map(specs = list(), scalars = list())
 
 - specs:
 
-  A list of `content_spec` objects (unnamed).
+  A list of objects made with
+  [`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md).
 
 - scalars:
 
-  A named list of scalar values. Names become slugs.
+  A named list of plain values, each inserted inline. The name is the
+  placeholder ID, so `list(total = 42)` fills `placeholder_total`.
+  Quicker than
+  [`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md),
+  but with no description in the validation log.
 
 ## Value
 
-A named list mapping slugs to scalars or `content_spec`s.
+A named list, with one entry per placeholder ID.
+
+## See also
+
+Other content:
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md)
 
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-spec1 <- define_content("A plot", "plot1", "chunk", { plot(1:10) }, "plot")
-spec2 <- define_content("A table", "table1", "asis", mtcars[1:5, 1:5], "table")
-map <- placeholder_map(specs = list(spec1, spec2), scalars = list(version = "0.1.0"))
-} # }
+plot <- define_content(
+  placeholder_id = "plot",
+  output_mode = "chunk",
+  content = { plot(1:10) }
+)
+placeholder_map(specs = list(plot), scalars = list(version = "0.1.0"))
+#> $plot
+#> $description
+#> NULL
+#> 
+#> $placeholder_id
+#> [1] "plot"
+#> 
+#> $output_mode
+#> [1] "chunk"
+#> 
+#> $content_expr
+#> {
+#>     plot(1:10)
+#> }
+#> 
+#> $content_type
+#> NULL
+#> 
+#> $chunk_options
+#> list()
+#> 
+#> attr(,"class")
+#> [1] "content_spec" "list"        
+#> 
+#> $version
+#> [1] "0.1.0"
+#> 
 ```

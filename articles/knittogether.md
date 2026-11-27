@@ -1,212 +1,324 @@
 # Getting started with knittogether
 
-knittogether lets you work seamlessly with colleagues who write in Word
-or PowerPoint, while you keep analytic content reproducible in R and
-Quarto.
+This article follows one report from the first Word draft to the
+finished output. It explains each step, then shows how to go back and
+forth with a colleague who edits in Word.
 
-The core idea is:
+## Three terms
 
-- Your colleagues write content in **Office** (Word/PPT)
-- You add **placeholders** where R-generated content should go
-- knittogether converts the document → markdown
-- You **replace** placeholders with R output (plots, tables, inline
-  values)
-- You knit back to **Word, PPT, PDF, HTML**, or any Quarto format
-- If needed, the resulting Office document can be edited again and
-  re-imported
+**Placeholder.** Plain text in the Word document that marks where R
+output should go, such as `placeholder_plot`. It has two parts: a prefix
+that every placeholder shares (`placeholder_`) and an ID that says which
+piece of content goes there (`plot`). The prefix is up to you. Set it
+with `placeholder_prefix`, and it’s used exactly as you give it, so
+`"xyz_"` gives `xyz_plot`. Pick one that won’t turn up by accident in
+normal writing, and use the same one throughout. The same placeholder
+can appear more than once if you need the same output in several places.
 
-A typical workflow looks like this:
+**Marker.** When knittogether fills a placeholder, it leaves a small
+styled tag with the placeholder’s name next to the output. That’s how it
+finds the output again next time. You control markers with
+`marker_mode`.
 
-Office (docx/pptx)
+**Draft block.** While the report is still a draft, each piece of R
+output is wrapped between `DRAFT_CONTENT_START` and `DRAFT_CONTENT_END`.
+The writer edits around these lines. When you bring the document back
+in, knittogether swaps each block for its placeholder so it can be
+filled again with fresh output.
 
-↓ convert Markdown + media/ folder
+## The first pass
 
-↓ clean Markdown (structured + tidy)
-
-↓ replace Markdown (with R output inserted)
-
-↓ render Quarto output (pptx, docx, html, pdf)
-
-↓ optional Edit in Office
-
-→ repeat
-
-## A minimal example
-
-Suppose your colleague gives you a **Word document** with text and the
-following placeholders: `placeholder_content_plot`, which should contain
-a plot of your data, and `placeholder_content_total_rows`, which should
-give a count of the number of rows in your data.
-
-### 1. Convert Word to markdown
-
-First we `[convert_markdown()]` the docx file into a markdown file,
-extracting the contents and structure as well as images, tables, and
-citations.
+Suppose a colleague sends you `draft.docx`. They’ve typed
+`placeholder_plot` where a chart should go and `placeholder_total` where
+a count of rows should go.
 
 ``` r
 
-knittogether::convert_markdown(
-  input_file    = "input.docx",
-  markdown_file = "report.md",
-  media_base_dir = "media"
+library(knittogether)
+```
+
+### 1. Convert
+
+[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md)
+turns the Word file into Markdown. It keeps the headings, lists, tables,
+footnotes and citations, and saves the images into a `media/` folder.
+
+``` r
+
+convert_markdown(
+  input_file = "draft.docx",
+  markdown_file = "draft.md",
+  media_base_dir = "."
 )
 ```
 
-### 2. Clean the markdown
+PowerPoint files work the same way. See
+[`vignette("powerpoint")`](https://wyuill.github.io/knittogether/articles/powerpoint.md)
+for the differences.
 
-Next we
+### 2. Clean
+
 [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
-the resulting markdown so that it will be processed correctly by Quarto.
+fixes things that Word leaves behind and Quarto doesn’t like.
 
 ``` r
 
 clean_markdown(
-  markdown_file   = "report.md",
-  heading_offset  = TRUE,
+  markdown_file = "draft.md",
+  placeholder_prefix = "placeholder_",
+  heading_offset = TRUE,
   clean_citations = TRUE
 )
 ```
 
-### 3. Create R-generated content
+Here `heading_offset = TRUE` moves every heading down a level, because a
+Word “Heading 1” would otherwise become the page title in HTML.
+`clean_citations = TRUE` removes stray backslashes from citations. Pass
+your `placeholder_prefix` so knittogether can tidy up any Word
+formatting stuck to the placeholders.
 
-We then define the content
-([`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md))
-we want to replace the placeholders with and map it to the placeholders
-([`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md))
-so we know what code matches what placeholder.
+### 3. Say what goes in each placeholder
+
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md)
+describes one piece of content.
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md)
+collects them all together.
 
 ``` r
 
 plot <- define_content(
-  description    = "A scatterplot",
   placeholder_id = "plot",
-  output_mode    = "chunk",
-  content        = { plot(iris$Sepal.Length, iris$Sepal.Width) },
-  content_type   = "plot",
-  chunk_options  = list(echo = FALSE, fig.width = 6)
+  description = "Car weight against fuel economy",
+  output_mode = "chunk",
+  content = { plot(mtcars$wt, mtcars$mpg) },
+  chunk_options = list(echo = FALSE, fig.width = 6)
 )
 
-rows <- define_content(
-  description    = "Number of rows in mtcars",
-  placeholder_id = "total_rows",
-  output_mode    = "inline",
-  content        = { nrow(mtcars) },
-  content_type   = "text"
+total <- define_content(
+  placeholder_id = "total",
+  description = "Number of cars",
+  output_mode = "inline",
+  content = { nrow(mtcars) }
 )
 
-content_map <- placeholder_map(specs = list(plot, rows))
+content <- placeholder_map(specs = list(plot, total))
 ```
 
-### 4. Replace placeholders with real content
+`output_mode` decides how the content goes in:
 
-Next we
-[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
-the placeholders with this content and, optionally, validate the content
-is correct.
+- `"inline"` puts a value inside a sentence, as inline R code.
+- `"chunk"` puts a code chunk on its own line, for plots, tables or
+  anything longer.
+- `"asis"` pastes in text exactly as you give it.
 
-``` r
+The code in `content` isn’t run yet. It’s written into the Markdown and
+runs when Quarto renders the document.
 
-replace_placeholders(
-  markdown_file      = "report.md",
-  code_content       = content_map,
-  placeholder_prefix = "placeholder_content",
-  validation_path    = "validation"
-)
-```
+`description` is optional but worth adding. It goes into the validation
+log (see step 4), which makes it much easier to check the right output
+has landed in the right place.
 
-If desired the markdown string can be passed to
-[`accessibility_scan()`](https://wyuill.github.io/knittogether/reference/accessibility_scan.md)
-to check whether alt text or captions are present for all images and
-tables.
-
-### 5. Render the Quarto document
-
-Finally, we can render the resulting file into whatever format we want
-to output from Quarto. In your .qmd (e.g., report.qmd), include: {{{ \<
-include report.md \> }}} and then render with
-`quarto::quarto_render("report.qmd")`. Or, `[replace_placeholders()]`
-invisibly returns the contents of the markdown so it can be inserted
-directly into a Quarto file.
-
-If you don’t want to run each step individually you can use
-[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
-to run them all at once. Each step reads the output of the step before
-it. Pass a folder as `input_file` to use its newest Word file,
-optionally narrowed with `base_name`. See the Working with versions
-section of the README for keeping earlier versions.
-
-A fuller, ready-to-run example is provided in
-[`vignette("extended-workflow")`](https://wyuill.github.io/knittogether/articles/extended-workflow.md).
-Other vignettes provide guidance on working with PowerPoint, citations,
-and setting up Office document styling.
-
-## Concepts
-
-Understanding a few core ideas helps make sense of the workflow.
-
-### Placeholders
-
-Placeholders are unique strings in Word or PowerPoint that indicate
-where R-generated content should go. For example
-`placeholder_content_plot`.
-
-They have two parts:
-
-- **prefix:** This is shared across all placeholders and identifies that
-  it is to be replaced (e.g., `"placeholder_content"`)
-- **identifier:** This tells knittogether which content to replace it
-  with (`"plot"`)
-
-Placeholders must use a shared prefix and should be unlikely to appear
-accidentally. They do not have to be unique if the same content is
-needed in multiple places.
-
-### Defining and mapping content
-
+For a plain value that doesn’t need a description, you can skip
 [`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md)
-tells knittogether what to insert and how to insert it. Content can
-either be a single scalar (e.g. a number or string) which are inserted
-inline or a chunk (e.g. a plot, table, child Quarto document, or code
-block) which are inserted on a new line.
+and pass it straight to the map:
 
-[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md)
-combines all content definitions into a single object ready to replace
-the placeholders in the document.
+``` r
 
-When defining large or complex content it is advisable to use functions
-or ‘child’ documents and using the
-[includes](https://quarto.org/docs/authoring/includes.html) feature of
-Quarto. Important considerations for doing this are:
+content <- placeholder_map(specs = list(plot), scalars = list(total = 32))
+```
 
-- Keeping parent .qmd, child files, and markdown output in the same
-  directory to avoid filepath issues when rendering.
-- Avoiding YAML in the child files where it may conflict with the parent
-  document (e.g., `format`).
-- Ensuring data required by children or functions is available in the
-  environment they are rendered in.
+For longer pieces of analysis, put the code in a separate Quarto file
+and [include it](https://quarto.org/docs/authoring/includes.html), for
+example `content = "{{< include child_plot.qmd >}}"`. A few things help
+this go smoothly:
 
-These can be added to the content argument of `[define_content()]` as
-`content= "{{< include child_plot.qmd >}}"`.
+- Keep the main `.qmd`, the child files and the Markdown in the same
+  folder, so relative paths work when you render.
+- Leave the YAML header out of child files, so settings such as `format`
+  don’t clash with the main document.
+- Make sure any data the child file uses has been loaded before it runs.
 
-## Working Iteratively
-
-You may find yourself going back and forth between Quarto and
-Word/PowerPoint. To make this easier you can use use draft mode to show
-the output of the code while keeping the placeholders.
+### 4. Fill the placeholders
 
 ``` r
 
 replace_placeholders(
-  markdown_file    = "report.md",
-  code_content     = content_map,
-  draft_mode       = TRUE,
-  draft_mode_prefix = "DRAFT_CONTENT_START",
-  draft_mode_suffix = "DRAFT_CONTENT_END",
-  marker_mode      = "hidden"
+  markdown_file = "draft.md",
+  placeholder_prefix = "placeholder_",
+  code_content = content,
+  validation_path = "validation"
 )
 ```
 
-In Word, placeholders can be configured to a “hidden” character style
-can be shown/hidden using ¶ to aid readability as shown in
-[`vignette("office-styling")`](https://wyuill.github.io/knittogether/articles/office-styling.md).
+Each placeholder is swapped for its content. With `validation_path` set,
+knittogether also writes a log of which placeholders it found and
+filled, and what changed since the last run. If the `quarto` and
+`reactable` packages are installed you also get an HTML page that’s
+easier to browse. Smaller, more specific placeholders give you a more
+useful log.
+
+To check that every image and table has alt text or a caption, pass the
+Markdown to
+[`accessibility_scan()`](https://wyuill.github.io/knittogether/reference/accessibility_scan.md):
+
+``` r
+
+accessibility_scan(readLines("draft.md"))
+```
+
+### 5. Render
+
+Include the Markdown in a Quarto document and render it:
+
+``` markdown
+---
+title: "My report"
+format: docx
+---
+
+{{< include draft.md >}}
+```
+
+Rendering to Word gives your colleague a draft with the R output in
+place. You can render the same file to HTML, PDF or PowerPoint by
+changing `format`.
+
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+also returns the Markdown invisibly, so you can insert it into a Quarto
+document directly instead of using an include.
+
+Quarto can’t include a file that doesn’t exist yet, so the Markdown has
+to be built before each render. In a Quarto project you can make this
+happen automatically. Put the steps above in a script, say `build.R`,
+and add this to `_quarto.yml`:
+
+``` yaml
+project:
+  pre-render: Rscript build.R
+```
+
+## Going back and forth with Word
+
+By default,
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+runs with `draft_mode = TRUE` and `marker_mode = "hidden"`. That’s what
+makes the round trip work: each piece of output sits in a draft block
+with a marker naming its placeholder.
+
+When your colleague has edited the Word draft and sent it back:
+
+1.  **Convert the new version.** If they save new copies into a folder,
+    `latest_word_file("drafts")` finds the most recent one.
+
+2.  **Clean it with `clear_draft = TRUE`.** This turns each draft block
+    back into its placeholder. Use the same `placeholder_prefix` you
+    filled the draft with. If you don’t, the placeholders won’t be
+    recognised and the draft content is removed with nothing to refill
+    it.
+
+    ``` r
+
+    clean_markdown(
+      markdown_file = "draft.md",
+      placeholder_prefix = "placeholder_",
+      clear_draft = TRUE
+    )
+    ```
+
+3.  **Fill the placeholders again** with
+    [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
+    Your output is refreshed, not duplicated, so you can update the
+    analysis at the same time.
+
+Ask your colleague to leave the `DRAFT_CONTENT_START` and
+`DRAFT_CONTENT_END` lines alone. Everything around them is theirs to
+edit. If those lines get in the way, you can set up a Word style that
+hides them until you press ¶.
+[`vignette("office-styling")`](https://wyuill.github.io/knittogether/articles/office-styling.md)
+shows how, and the package includes an example document already set up
+this way:
+
+``` r
+
+system.file("extdata", "PlaceholderMarker_example.docx", package = "knittogether")
+```
+
+## The final version
+
+When the words are final, fill the placeholders one last time with draft
+mode and markers turned off:
+
+``` r
+
+replace_placeholders(
+  markdown_file = "draft.md",
+  placeholder_prefix = "placeholder_",
+  code_content = content,
+  draft_mode = FALSE,
+  marker_mode = "off"
+)
+```
+
+You can run this straight on the latest draft: any draft blocks are
+removed first. The result has no placeholder names or markers left in
+it.
+
+Only do this at the end. With `marker_mode = "off"` there’s nothing left
+to show where the output came from, so a document rendered this way
+can’t be brought back in and refreshed.
+
+## Keeping earlier versions
+
+By default each step overwrites its file. To keep a history instead,
+give
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+or
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+an `output_file`, and use
+[`timestamped_path()`](https://wyuill.github.io/knittogether/reference/timestamped_path.md)
+to add the date and time to the name:
+
+``` r
+
+replace_placeholders(
+  markdown_file = "draft.md",
+  placeholder_prefix = "placeholder_",
+  code_content = content,
+  output_file = timestamped_path("drafts/draft.md")
+)
+```
+
+Set `overwrite = FALSE` if you’d rather get an error than overwrite an
+existing file.
+
+## Running every step at once
+
+[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
+runs convert, clean and replace in one call. Give it any argument the
+three functions take. Each step uses the previous step’s output. If you
+give a folder as `input_file`, it uses the newest Word or PowerPoint
+file in it, and `base_name` narrows the choice to files whose names
+start with that text.
+
+``` r
+
+run_workflow(
+  input_file = "drafts",
+  base_name = "report",
+  markdown_file = "report.md",
+  placeholder_prefix = "placeholder_",
+  heading_offset = TRUE,
+  code_content = content
+)
+```
+
+## Where next
+
+- [`vignette("extended-workflow")`](https://wyuill.github.io/knittogether/articles/extended-workflow.md)
+  is a complete example you can copy and run.
+- [`vignette("office-styling")`](https://wyuill.github.io/knittogether/articles/office-styling.md)
+  covers setting up Word files so they convert cleanly.
+- [`vignette("powerpoint")`](https://wyuill.github.io/knittogether/articles/powerpoint.md)
+  covers slides.
+- [`vignette("citations")`](https://wyuill.github.io/knittogether/articles/citations.md)
+  covers keeping Zotero references working.

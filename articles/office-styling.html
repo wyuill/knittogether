@@ -16,7 +16,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="office-styling_files/libs/quarto-html/popper.min.js"></script><script src="office-styling_files/libs/quarto-html/tippy.umd.min.js"></script><link href="office-styling_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="office-styling_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Office styling and layout">
+<!-- pkgdown --><script src="../pkgdown.js"></script><script src="../extra.js"></script><meta property="og:title" content="Office styling and layout">
 <meta property="og:image" content="https://wyuill.github.io/knittogether/logo.png">
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">knittogether</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,7 +41,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/citations.html">Using References</a></li>
+<li><a class="dropdown-item" href="../articles/citations.html">Using references</a></li>
     <li><a class="dropdown-item" href="../articles/extended-workflow.html">Extended workflow</a></li>
     <li><a class="dropdown-item" href="../articles/office-styling.html">Office styling and layout</a></li>
     <li><a class="dropdown-item" href="../articles/powerpoint.html">Working with PowerPoint</a></li>
@@ -83,29 +83,14 @@
 
 
 
-    <p><code>knittogether</code> works by converting <strong>Office documents → markdown → Quarto → Office</strong>.<br>
-To keep formatting consistent throughout this round‑trip, it’s important to structure and style your <strong>Word</strong> and <strong>PowerPoint</strong> files correctly.</p>
-<p>This guide covers:</p>
-<ul>
-<li>How Word styles translate to markdown</li>
-<li>Using reference <code>.docx</code> and <code>.pptx</code> templates</li>
-<li>Managing captions, headings, lists, and layout</li>
-<li>Creating hidden placeholder styles</li>
-<li>Avoiding Word formatting that Pandoc cannot interpret</li>
-<li>Ensuring PowerPoint output respects your template</li>
-<li>Common pitfalls and how to avoid them</li>
-</ul>
-<section class="section level2"><h2 id="word-styling">Word Styling<a class="anchor" aria-label="anchor" href="#word-styling"></a>
+    <p>knittogether reads Word documents through Pandoc, and Pandoc only understands a document’s structure. It can tell a heading from a paragraph, but not that someone made a line bold and 16 point. The more a Word document relies on styles rather than hand formatting, the better it converts. This article covers setting up Word documents and templates so that formatting survives the trip from Word to Markdown and back. For slides, see <code><a href="../articles/powerpoint.html">vignette("powerpoint")</a></code>.</p>
+<section class="level2"><h2 id="use-words-built-in-styles">Use Word’s built-in styles<a class="anchor" aria-label="anchor" href="#use-words-built-in-styles"></a>
 </h2>
-<p>Word documents are best treated as <strong>structured</strong>, not manually formatted, documents. Pandoc relies heavily on Word’s built‑in styles to produce correct markdown.</p>
-<p>Ensure all content uses Word’s official styles such as Title Heading 1-6, Normal, List Paragraph, and Caption.</p>
-<p>Pandoc ignores or flattens items such as text boxes, SmartArt, WordArt, and shapes containing text. Converting these to text format or saving as an image with appropriate caption allows them to be rendered as desired.</p>
-<p>Tables with long text or line breaks may need adjustment to the Pandoc conversion process as described in <code><a href="../articles/extended-workflow.html">vignette("extended-workflow")</a></code>. Merged cells in tables should be avoided.</p>
-<p>Avoid manually changing font, size, alignment, or colour on individual paragraphs. Instead, modify the style itself (Home → Styles → Modify). This is because pandoc converts these into markdown as follows:</p>
+<p>Use Word’s own styles for everything: Title, Heading 1 to 6, Normal, List Paragraph and Caption. Pandoc turns them into Markdown like this:</p>
 <table class="table caption-top">
 <thead><tr class="header">
 <th>Word style</th>
-<th>Markdown output</th>
+<th>Markdown</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -121,65 +106,57 @@ To keep formatting consistent throughout this round‑trip, it’s important to 
 <td><code>###</code></td>
 </tr>
 <tr class="even">
-<td>Caption</td>
-<td>Markdown figure/table caption syntax</td>
+<td>Normal</td>
+<td>A plain paragraph</td>
 </tr>
 <tr class="odd">
-<td>Normal</td>
-<td>Plain paragraphs</td>
+<td>List Paragraph</td>
+<td>A <code>-</code> or <code>1.</code> list</td>
 </tr>
 <tr class="even">
-<td>List Paragraph</td>
-<td>
-<code>-</code> / <code>1.</code> lists</td>
+<td>Caption</td>
+<td>A figure or table caption</td>
 </tr>
 </tbody>
 </table>
-<section class="level2"><h3 id="captions-images-tables">Captions (images &amp; tables)<a class="anchor" aria-label="anchor" href="#captions-images-tables"></a>
-</h3>
-<p>Word captions must be inserted via Word’s built‑in tool: Right‑click image/table → Insert Caption</p>
-<p>This ensures Pandoc recognises the caption as:</p>
-<ul>
-<li>an image/table</li>
-<li>with a formal caption</li>
-<li>with a stable anchor to the media file</li>
-</ul>
-<p>Avoid typing captions manually below images as they will not be detected.</p>
-</section></section><section class="section level2"><h2 id="reference-documents">Reference documents<a class="anchor" aria-label="anchor" href="#reference-documents"></a>
+<p>If you want headings to look different, change the style (Home → Styles → right-click → Modify) rather than formatting each heading by hand. Hand formatting is lost on conversion. A changed style is kept, and you can carry it over to the output with a reference document (see below).</p>
+<p>Some things don’t convert at all. Text boxes, SmartArt, WordArt and shapes with text in them are dropped or flattened. Turn them into ordinary text, or save them as an image with a caption.</p>
+<p>In tables, avoid merged cells. Tables with long text or line breaks in cells may need different Pandoc settings, as described in <code><a href="../articles/extended-workflow.html">vignette("extended-workflow")</a></code>.</p>
+</section><section class="level2"><h2 id="add-captions-with-insert-caption">Add captions with Insert Caption<a class="anchor" aria-label="anchor" href="#add-captions-with-insert-caption"></a>
 </h2>
-<p>Quarto lets you specify a custom Word or PowerPoint template:</p>
-<pre><code><span><span class="va">format</span><span class="op">:</span></span>
-<span>  <span class="va">docx</span><span class="op">:</span></span>
-<span>    <span class="va">reference</span><span class="op">-</span><span class="va">doc</span><span class="op">:</span> <span class="va">reference.docx</span></span></code></pre>
-<section class="level2"><h3 id="word">Word<a class="anchor" aria-label="anchor" href="#word"></a>
-</h3>
-<p>Your reference document should define the Styles supported by pandoc markdown such as Headers 1-6, body text and lists. It is advisable to take a blank Word file, ideally one generated via Quarto/pandoc and:</p>
-<ul>
-<li>Modify only the Styles, not the body text</li>
-<li>Save as reference.docx</li>
-<li>Store it in your project or shared template folder</li>
-<li>Reference it from your .qmd</li>
-</ul>
-<p>To prevent formatting outside of supported and tested style from being used. This can be achieved by going through Review → Protect → Restrict Editing.</p>
-</section><section class="level2"><h3 id="powerpoint">PowerPoint<a class="anchor" aria-label="anchor" href="#powerpoint"></a>
-</h3>
-<p>PowerPoint styling is controlled via a template (.pptx) master slide deck. Pandoc supports a limited set of <a href="https://pandoc.org/demo/example33/10.1-structuring-the-slide-show.html" class="external-link">slide layouts</a>.</p>
-</section></section><section class="section level2"><h2 id="advanced-features">Advanced features<a class="anchor" aria-label="anchor" href="#advanced-features"></a>
+<p>Add captions to images and tables with Word’s own tool: right-click the image or table and choose Insert Caption. Pandoc then knows the caption belongs to the image or table. A caption typed underneath as ordinary text is just another paragraph.</p>
+</section><section class="level2"><h2 id="reference-documents">Reference documents<a class="anchor" aria-label="anchor" href="#reference-documents"></a>
 </h2>
-<section class="level2"><h3 id="callouts-and-other-components">Callouts and other components<a class="anchor" aria-label="anchor" href="#callouts-and-other-components"></a>
-</h3>
-<p>While not ideal for readability in Word, it is possible to specify components such as callouts by adding the syntax directly in the document. For instance, this will render a callout when read into Quarto.</p>
-<pre><code>This is a word document.
-
-::: {.callout-warning}
-# Warning!
-This is a callout warning.
-:::</code></pre>
-</section><section class="level2"><h3 id="making-placeholders-less-disruptive">Making placeholders less disruptive<a class="anchor" aria-label="anchor" href="#making-placeholders-less-disruptive"></a>
-</h3>
-<p>For the ease of reading, placeholders are wrapped in a custom styling. If Word or HTML documents have the relevant styling, placeholders can be hidden from view. In Word this can be toggled with the ¶ button on the Home tab or with <code>CTRL + *</code>. Consideration should be made to whether this makes it easier or harder for users editing the Word document as invisible content is easier to accidentally delete.</p>
-<p>An example Word document is provided in this package and is accessible via <code>system.file("extdata", "PlaceholderMarker_example.docx", package = "knittogether")</code>. To apply the style to an arbitrary Word document, create a custom character style with the Hidden font attribute enabled. In Word: Home → Styles → New Style → Style type: Character → Format → Font → tick Hidden. Reveal placeholders by toggling Show/Hide (¶).</p>
-</section></section><script id="quarto-html-after-body" type="application/javascript">
+<p>A reference document is a Word file whose styles Quarto copies into the output. Point to it in the YAML of your <code>.qmd</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">docx</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">reference-doc</span><span class="kw">:</span><span class="at"> reference.docx</span></span></code></pre></div>
+<p>To make one:</p>
+<ol type="1">
+<li>Start from a blank Word file, ideally one made by Quarto or Pandoc, so all the styles it uses are already there.</li>
+<li>Change the styles you care about. Don’t add any body text.</li>
+<li>Save it as <code>reference.docx</code> in your project or a shared template folder.</li>
+</ol>
+<p>To stop colleagues using formatting the template doesn’t support, you can limit them to its styles with Review → Restrict Editing.</p>
+</section><section class="level2"><h2 id="callouts-and-other-quarto-features">Callouts and other Quarto features<a class="anchor" aria-label="anchor" href="#callouts-and-other-quarto-features"></a>
+</h2>
+<p>You can type Quarto syntax straight into Word and it will work once the document is converted. For example, this text in a Word document becomes a warning callout:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning}</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu"># Warning!</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>This is a callout warning.</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div>
+<p>It isn’t pretty to read in Word, so use it sparingly.</p>
+</section><section class="level2"><h2 id="hiding-placeholders-and-markers">Hiding placeholders and markers<a class="anchor" aria-label="anchor" href="#hiding-placeholders-and-markers"></a>
+</h2>
+<p>Placeholders and draft markers are easier to live with if Word can hide them. Give them a character style with the Hidden font setting, and they disappear until someone clicks ¶ on the Home tab (or presses Ctrl + Shift + 8).</p>
+<p>To create the style: Home → Styles → New Style, set the style type to Character, then Format → Font and tick Hidden.</p>
+<p>The package includes a Word document that already has these styles:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"PlaceholderMarker_example.docx"</span>, package <span class="op">=</span> <span class="st">"knittogether"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<p>Think about whether hiding helps the people editing the document. Text you can’t see is easy to delete by accident, and a deleted marker means that output can’t be refreshed. For HTML output, <code><a href="../reference/hide_markers_css.html">hide_markers_css()</a></code> hides the markers in the same way.</p>
+</section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
