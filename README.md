@@ -24,7 +24,7 @@ The result is a single, reproducible workflow that outputs to any Quarto-support
 
 ```         
 # install.packages("pak")
-pak::pak("LBCamden/knittogether")
+pak::pak("wyuill/knittogether")
 ```
 
 As noted in the DESCRIPTION, if functions involving the import and/or export of citations are used then [Zotero](https://www.zotero.org/download) and [BetterBibTeX](https://github.com/retorquere/zotero-better-bibtex/releases) are required. To export live citations to .docx format, a [Lua filter](https://retorque.re/zotero-better-bibtex/exporting/zotero.lua) is required and must be specified in the YAML of the .qmd.
