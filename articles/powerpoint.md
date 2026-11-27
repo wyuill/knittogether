@@ -1,9 +1,9 @@
 # Working with PowerPoint
 
 The workflow itself does not require much adjustment to work with
-PowerPoint, though `clean(pptx_section_offset = TRUE)` is often useful
-to adjust header levels when Section Header slides are used. A number of
-specific helper functions can also help.
+PowerPoint, though `clean_markdown(pptx_section_offset = TRUE)` is often
+useful to adjust header levels when Section Header slides are used. A
+number of specific helper functions can also help.
 
 Quarto-produced PowerPoint presentations often require different styling
 and formatting than other output types. knittogether has a set of
@@ -23,17 +23,17 @@ numbers and styling applied to elements such as text.
 ### Backgrounds
 
 The function
-[`pptx_section_slide()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/pptx_section_slide.md)
+[`pptx_section_slide()`](https://wyuill.github.io/knittogether/reference/pptx_section_slide.md)
 allows for background images to be added to slides. These images need to
 be provided in the right dimensions.
 
 ### Columns
 
 The functions
-[`pptx_col_start()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/pptx_col_start.md),
-[`pptx_col_break()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/pptx_col_start.md),
+[`pptx_col_start()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md),
+[`pptx_col_break()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md),
 and
-[`pptx_col_end()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/pptx_col_start.md)
+[`pptx_col_end()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md)
 allow easy addition of columns.
 
 ### Starting a new slide
@@ -44,9 +44,9 @@ produce content that exceeds slide size and, unlike HTML slide formats,
 there is currently no practical way to resize text except by globally
 reducing text size in the master template. It can therefore be useful to
 add slide breaks throughout the text. This can be done manually with
-[`slide_break()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/slide_break.md)
+[`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md)
 and automatically on a string with
-[`auto_slide_break()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/auto_slide_break.md).
+[`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md).
 In Quarto-generated documents, these are straightforward to apply,
 though some trial and error may be needed to ensure content fits slides.
 If exact locations are required within Word/markdown documents, breaks
@@ -63,6 +63,6 @@ must be done so manually by creating a library in Zotero, adding the
 references and then copying the Citation Key for each reference into the
 PowerPoint, prefixing it with `[@` and suffixing it with `]` so that it
 aligns with the pandoc syntax outlined in
-[`vignette("citations")`](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/citations.md)
+[`vignette("citations")`](https://wyuill.github.io/knittogether/articles/citations.md)
 and matches the bibliography. These references will be read into
 markdown and subsequent qmd outputs.

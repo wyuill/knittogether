@@ -74,8 +74,9 @@ from docx to markdown.
 
 - Errors with citations can be caused by excess `\` created during
   conversion. This typically occurs when a different markdown variant is
-  used (e.g. `convert(pandoc_args='--to=markdown_strict')`). Setting
-  `clean(clean_citations = TRUE)` should resolve these issues.
+  used (e.g. `convert_markdown(pandoc_args='--to=markdown_strict')`).
+  Setting `clean_markdown(clean_citations = TRUE)` should resolve these
+  issues.
 
 - If citations are not linked to a bibliography entry in the output,
   this is typically due to a mismatch between the keys imported from
@@ -83,5 +84,5 @@ from docx to markdown.
   sporadically and can be solved by editing the citekey field in Zotero
   for affected items.
 
-- [`vignette("extended-workflow")`](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/extended-workflow.md)
+- [`vignette("extended-workflow")`](https://wyuill.github.io/knittogether/articles/extended-workflow.md)
   provides an example of extracting citations from Word.

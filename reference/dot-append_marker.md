@@ -1,7 +1,7 @@
 # Append a placeholder marker to rendered content
 
 Attaches a marker (built via
-[`.build_marker()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/dot-build_marker.md))
+[`.build_marker()`](https://wyuill.github.io/knittogether/reference/dot-build_marker.md))
 to the rendered replacement body.
 
 ## Usage

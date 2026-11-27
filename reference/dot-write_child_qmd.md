@@ -1,6 +1,6 @@
 # Write a child .qmd file to disk
 
-Called by replace() when a chunk uses `as_child = TRUE`.
+Called by replace_placeholders() when a chunk uses `as_child = TRUE`.
 
 ## Usage
 

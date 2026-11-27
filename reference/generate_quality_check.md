@@ -1,7 +1,7 @@
 # Generate a quality check log for placeholder replacements (developer utility)
 
 Internal developer-facing utility used by
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
 to compare current placeholder code content against the latest logged
 state (CSV) and record change metadata. Optionally generates an HTML
 report (Quarto + reactable) from the same CSV.
@@ -24,7 +24,7 @@ generate_quality_check(
 - code_content:
 
   A named list of content specifications and scalars, typically from
-  [`placeholder_map()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/placeholder_map.md).
+  [`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md).
 
 - markdown_file:
 

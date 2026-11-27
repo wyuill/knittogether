@@ -35,7 +35,7 @@ contribute without technical barriers.
 ## Installation
 
     # install.packages("pak")
-    pak::pak("LBCamden/knittogether")
+    pak::pak("wyuill/knittogether")
 
 As noted in the DESCRIPTION, if functions involving the import and/or
 export of citations are used then
@@ -47,36 +47,148 @@ is required and must be specified in the YAML of the .qmd.
 
 ## Usage
 
-knittogether follows a standard workflow convert→clean→replace.
+knittogether lets a writer work in Word or PowerPoint while a coder
+fills in R output, and then rebuild the finished report from the code.
+Either person can start, and the loop repeats until the report is final.
 
-    library(knittogether)
+``` mermaid
+flowchart LR
+  A["Writer adds placeholders<br/>in the Word draft"] --> B["Coder: convert, clean,<br/>replace_placeholders()"]
+  B --> C["Writer edits the draft<br/>in Word, around the R output"]
+  C --> D["Coder: convert, clean with<br/>clear_draft, replace again"]
+  D --> C
+  D --> E["Final render with<br/>draft_mode = FALSE"]
+```
 
-    # example.docx is a Word document containing placeholders indicating what and where code content should be added (e.g. `placeholder_content_plot`). It is converted into a markdown file.
-    convert(input_file = "example.docx", markdown_file = "example.md")
+### Terms
 
-    # The markdown is cleaned to ensure it works with Quarto
-    clean(markdown_file = "example.md")
+- **Placeholder**: plain text in the Word file made of a common prefix
+  and an ID, for example `knit_plot`. It marks where R output goes.
+- **Marker**: a styled span that keeps the placeholder name in the
+  Markdown, so the placeholder can be found again on the next pass.
+  Controlled by `marker_mode`.
+- **Draft block**: the R output wrapped between `DRAFT_CONTENT_START`
+  and `DRAFT_CONTENT_END`. The writer can edit around it, and
+  `clean_markdown(clear_draft = TRUE)` reduces it back to its
+  placeholder.
 
-    # Code content is created and mapped onto the placeholders
-    plot <- define_content(
-      description = "A plot",
-      placeholder_id = "plot",
-      output_mode = "chunk",
-      content = { plot(1, 1) },
-      content_type = "plot",
-      chunk_options  = list(echo = FALSE))
+### Quick start
 
-    map <- placeholder_map(specs = list(plot))
+1.  **Writer adds placeholders.** In the Word draft, type `knit_total`
+    or `knit_plot` where R output should go, and write the commentary
+    around them.
 
-    # The placeholders in the markdown are switched for the code content. The output is ready to use within a Quarto file and rendered to any format
-    replace(markdown_file = "example.md",
-      placeholder_prefix = "placeholder_content",
-      code_content = map)
+2.  **Coder fills them from R.** Convert the draft, clean it, define the
+    content and replace the placeholders:
+
+``` r
+
+library(knittogether)
+
+convert_markdown("draft.docx", markdown_file = "draft.md")
+clean_markdown("draft.md")
+
+plot <- define_content(
+  placeholder_id = "plot",
+  output_mode = "chunk",
+  content_type = "plot",
+  content = { plot(1:10) },
+  chunk_options = list(echo = FALSE)
+)
+total <- define_content(
+  placeholder_id = "total",
+  output_mode = "inline",
+  content_type = "text",
+  content = { nrow(mtcars) }
+)
+
+replace_placeholders(
+  "draft.md",
+  placeholder_prefix = "knit",
+  code_content = placeholder_map(specs = list(plot, total)),
+  draft_mode = TRUE
+)
+```
+
+3.  **Writer edits the draft.** Render the Markdown to Word (for example
+    with Quarto or Pandoc) and edit around the R output. Leave the draft
+    markers in place.
+
+4.  **Coder re-imports and refreshes.** Convert the edited Word file,
+    clean it with `clear_draft = TRUE`, and run
+    [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+    again. The R output is replaced, not duplicated.
+
+5.  **Final render.** Run
+    [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+    with `draft_mode = FALSE` and `marker_mode = "off"`, then render the
+    Markdown with Quarto to any format. The output then has no
+    placeholder names or markers. You can run this straight from the
+    draft: any draft markers are removed. Keep the markers only while
+    the document will still go back through Word.
+
+Notes:
+
+- `marker_mode = "off"` writes no marker, so the inserted content can’t
+  be found again on re-import. Use it only for documents that won’t go
+  back through Word.
+- Quarto needs the Markdown to exist before it renders. The
+  extended-workflow vignette shows a `pre-render` step that builds it
+  automatically.
+- An example template with styled placeholders is included:
+  `system.file("extdata", "PlaceholderMarker_example.docx", package = "knittogether")`.
+
+## Working with versions
+
+Every step can write to a new file instead of overwriting. Pass
+`output_file` to
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+or
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md),
+and use
+[`timestamped_path()`](https://wyuill.github.io/knittogether/reference/timestamped_path.md)
+to give the output a time stamp so earlier versions are kept:
+
+``` r
+
+replace_placeholders(
+  "draft.md",
+  code_content = placeholder_map(specs = list(plot, total)),
+  output_file = timestamped_path("drafts/draft.md"),
+  draft_mode = TRUE
+)
+```
+
+Pass `overwrite = FALSE` to stop rather than write over an existing
+file. The default is `TRUE`, so existing scripts keep overwriting.
+
+To use the newest Word file in a folder, pass the folder instead of a
+file name.
+[`latest_word_file()`](https://wyuill.github.io/knittogether/reference/latest_word_file.md)
+returns it, and
+[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
+accepts a folder directly, with an optional `base_name` to narrow the
+choice:
+
+``` r
+
+run_workflow(
+  input_file = "drafts",
+  base_name = "report",
+  markdown_file = "report.md",
+  placeholder_prefix = "knit",
+  code_content = placeholder_map(specs = list(plot, total)),
+  draft_mode = TRUE
+)
+```
+
+Each step reads the output of the step before it, so the cleaned file is
+the one that gets filled in.
 
 ## Getting help
 
 - Browse the function documentation
-  (e.g. [`?knittogether::clean`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/clean.md))
+  (e.g. [`?knittogether::clean_markdown`](https://wyuill.github.io/knittogether/reference/clean_markdown.md))
   and vignettes.
 
 - Please open an issue on GitHub or [get in

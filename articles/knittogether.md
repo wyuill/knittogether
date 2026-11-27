@@ -40,12 +40,13 @@ give a count of the number of rows in your data.
 
 ### 1. Convert Word to markdown
 
-First we `[convert()]` the docx file into a markdown file, extracting
-the contents and structure as well as images, tables, and citations.
+First we `[convert_markdown()]` the docx file into a markdown file,
+extracting the contents and structure as well as images, tables, and
+citations.
 
 ``` r
 
-knittogether::convert(
+knittogether::convert_markdown(
   input_file    = "input.docx",
   markdown_file = "report.md",
   media_base_dir = "media"
@@ -55,12 +56,12 @@ knittogether::convert(
 ### 2. Clean the markdown
 
 Next we
-[`clean()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/clean.md)
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
 the resulting markdown so that it will be processed correctly by Quarto.
 
 ``` r
 
-clean(
+clean_markdown(
   markdown_file   = "report.md",
   heading_offset  = TRUE,
   clean_citations = TRUE
@@ -70,9 +71,9 @@ clean(
 ### 3. Create R-generated content
 
 We then define the content
-([`define_content()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/define_content.md))
+([`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md))
 we want to replace the placeholders with and map it to the placeholders
-([`placeholder_map()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/placeholder_map.md))
+([`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md))
 so we know what code matches what placeholder.
 
 ``` r
@@ -100,13 +101,13 @@ content_map <- placeholder_map(specs = list(plot, rows))
 ### 4. Replace placeholders with real content
 
 Next we
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
 the placeholders with this content and, optionally, validate the content
 is correct.
 
 ``` r
 
-replace(
+replace_placeholders(
   markdown_file      = "report.md",
   code_content       = content_map,
   placeholder_prefix = "placeholder_content",
@@ -115,7 +116,7 @@ replace(
 ```
 
 If desired the markdown string can be passed to
-[`accessibility_scan()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/accessibility_scan.md)
+[`accessibility_scan()`](https://wyuill.github.io/knittogether/reference/accessibility_scan.md)
 to check whether alt text or captions are present for all images and
 tables.
 
@@ -124,16 +125,19 @@ tables.
 Finally, we can render the resulting file into whatever format we want
 to output from Quarto. In your .qmd (e.g., report.qmd), include: {{{ \<
 include report.md \> }}} and then render with
-`quarto::quarto_render("report.qmd")`. Or, `[replace()]` invisibly
-returns the contents of the markdown so it can be inserted directly into
-a Quarto file.
+`quarto::quarto_render("report.qmd")`. Or, `[replace_placeholders()]`
+invisibly returns the contents of the markdown so it can be inserted
+directly into a Quarto file.
 
 If you don’t want to run each step individually you can use
-[`run_workflow()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/run_workflow.md)
-to run them all at once.
+[`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
+to run them all at once. Each step reads the output of the step before
+it. Pass a folder as `input_file` to use its newest Word file,
+optionally narrowed with `base_name`. See the Working with versions
+section of the README for keeping earlier versions.
 
 A fuller, ready-to-run example is provided in
-[`vignette("extended-workflow")`](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/extended-workflow.md).
+[`vignette("extended-workflow")`](https://wyuill.github.io/knittogether/articles/extended-workflow.md).
 Other vignettes provide guidance on working with PowerPoint, citations,
 and setting up Office document styling.
 
@@ -160,13 +164,13 @@ needed in multiple places.
 
 ### Defining and mapping content
 
-[`define_content()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/define_content.md)
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md)
 tells knittogether what to insert and how to insert it. Content can
 either be a single scalar (e.g. a number or string) which are inserted
 inline or a chunk (e.g. a plot, table, child Quarto document, or code
 block) which are inserted on a new line.
 
-[`placeholder_map()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/placeholder_map.md)
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md)
 combines all content definitions into a single object ready to replace
 the placeholders in the document.
 
@@ -193,16 +197,16 @@ the output of the code while keeping the placeholders.
 
 ``` r
 
-replace(
+replace_placeholders(
   markdown_file    = "report.md",
   code_content     = content_map,
   draft_mode       = TRUE,
-  draft_mode_prefix = "--DRAFT_CONTENT--",
-  draft_mode_suffix = "--END_DRAFT_CONTENT--",
+  draft_mode_prefix = "DRAFT_CONTENT_START",
+  draft_mode_suffix = "DRAFT_CONTENT_END",
   marker_mode      = "hidden"
 )
 ```
 
 In Word, placeholders can be configured to a “hidden” character style
 can be shown/hidden using ¶ to aid readability as shown in
-[`vignette("office-styling")`](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/office-styling.md).
+[`vignette("office-styling")`](https://wyuill.github.io/knittogether/articles/office-styling.md).

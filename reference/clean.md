@@ -10,11 +10,11 @@ Post‑processes Markdown so that it’s suitable for inclusion in Quarto
 - globally offsets headings,
 
 - clears draft blocks written by
-  [`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md),
+  [`replace()`](https://wyuill.github.io/knittogether/reference/replace.md),
   keeping only the placeholder,
 
 - removes styling from placeholder markers written by
-  [`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md).
+  [`replace()`](https://wyuill.github.io/knittogether/reference/replace.md).
 
 ## Usage
 

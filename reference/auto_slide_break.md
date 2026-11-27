@@ -1,7 +1,7 @@
 # Automatically Insert Slide Breaks (Header-Aware)
 
 Applies
-[`insert_slide_break`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/insert_slide_break.md)
+[`insert_slide_break`](https://wyuill.github.io/knittogether/reference/insert_slide_break.md)
 repeatedly respecting header rules until no more breaks can be inserted.
 
 ## Usage

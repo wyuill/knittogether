@@ -2,7 +2,7 @@
 
 Replace tokens of the form `<placeholder_prefix>_<slug>` using scalars
 or `content_spec` from
-[`define_content()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/define_content.md).
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md).
 Execution is deferred to knitr/Quarto.
 
 ### Marker behavior

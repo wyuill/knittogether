@@ -1,7 +1,7 @@
-# Create a list of Placeholders with their Content for [`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
+# Create a list of Placeholders with their Content for [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
 
 Constructs a named list for use in
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
 by:
 
 - extracting slugs from each `content_spec` in `specs`;

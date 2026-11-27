@@ -30,7 +30,7 @@ an image with appropriate caption allows them to be rendered as desired.
 
 Tables with long text or line breaks may need adjustment to the Pandoc
 conversion process as described in
-[`vignette("extended-workflow")`](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/extended-workflow.md).
+[`vignette("extended-workflow")`](https://wyuill.github.io/knittogether/articles/extended-workflow.md).
 Merged cells in tables should be avoided.
 
 Avoid manually changing font, size, alignment, or colour on individual

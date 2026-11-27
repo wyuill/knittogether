@@ -9,11 +9,11 @@ rendered by downstream tooling (e.g., knitr/Quarto).
 
 ``` r
 define_content(
-  description,
+  description = NULL,
   placeholder_id,
   output_mode = c("inline", "chunk", "asis"),
   content,
-  content_type,
+  content_type = NULL,
   chunk_options = list()
 )
 ```

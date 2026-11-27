@@ -3,12 +3,12 @@
 ### All vignettes
 
 - [Using
-  References](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/citations.md):
+  References](https://wyuill.github.io/knittogether/articles/citations.md):
 - [Extended
-  workflow](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/extended-workflow.md):
+  workflow](https://wyuill.github.io/knittogether/articles/extended-workflow.md):
 - [Getting started with
-  knittogether](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/knittogether.md):
+  knittogether](https://wyuill.github.io/knittogether/articles/knittogether.md):
 - [Office styling and
-  layout](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/office-styling.md):
+  layout](https://wyuill.github.io/knittogether/articles/office-styling.md):
 - [Working with
-  PowerPoint](https://sturdy-giggle-wwjo5pk.pages.github.io/articles/powerpoint.md):
+  PowerPoint](https://wyuill.github.io/knittogether/articles/powerpoint.md):

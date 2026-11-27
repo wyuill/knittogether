@@ -2,7 +2,7 @@
 
 Constructs a Pandoc-style span representing a placeholder marker with
 styling applied according to `marker_mode` in
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md).
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
 
 ## Usage
 

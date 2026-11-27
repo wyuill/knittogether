@@ -4,6 +4,34 @@ This vignette contains a reproducible example of knittogether. The code
 can be copied into a .R, .rmd, or .qmd file should you wish to run it
 locally.
 
+## The workflow at a glance
+
+knittogether lets a writer work in Word or PowerPoint while a coder
+fills in R output, and then rebuild the finished report from the code.
+Either person can start, and the loop repeats until the report is final.
+
+``` mermaid
+flowchart LR
+  A["Writer adds placeholders<br/>in the Word draft"] --> B["Coder: convert, clean,<br/>replace_placeholders()"]
+  B --> C["Writer edits the draft<br/>in Word, around the R output"]
+  C --> D["Coder: convert, clean with<br/>clear_draft, replace again"]
+  D --> C
+  D --> E["Final render with<br/>draft_mode = FALSE"]
+```
+
+Three terms are used throughout:
+
+- **Placeholder**: plain text in the Word file made of a common prefix
+  and an ID, for example `placeholder_content_total`. It marks where R
+  output goes.
+- **Marker**: a styled span that keeps the placeholder name in the
+  Markdown, so it can be found again on the next pass. Set with
+  `marker_mode`.
+- **Draft block**: the R output wrapped between `DRAFT_CONTENT_START`
+  and `DRAFT_CONTENT_END`. The writer can edit around it, and
+  `clean_markdown(clear_draft = TRUE)` reduces it back to its
+  placeholder.
+
 > **Vignette reproducibility**
 >
 > To make this vignette fully reproducible the following files are
@@ -187,10 +215,10 @@ folder called `media/`.
 
 ``` r
 
-knittogether::convert(input_file = file.path(temp_dir, "example.docx"),
+knittogether::convert_markdown(input_file = file.path(temp_dir, "example.docx"),
                       markdown_file = file.path(temp_dir, "example.md"), 
                       media_base_dir = file.path(temp_dir, "workflow"),
-                      pandoc_version = "default", )
+                      pandoc_version = "default")
 ```
 
 In this case the contents of the Word document are relatively simple. If
@@ -215,7 +243,7 @@ If required cleaning can be performed. In this case
 
 ``` r
 
-knittogether::clean(markdown_file = file.path(temp_dir, "example.md"),
+knittogether::clean_markdown(markdown_file = file.path(temp_dir, "example.md"),
                     heading_offset = T,
                     clean_citations = T)
 ```
@@ -223,22 +251,22 @@ knittogether::clean(markdown_file = file.path(temp_dir, "example.md"),
 If working with a file generated through knittogether, options such as
 `clear_draft` and `clear_placeholder_styling` may be useful. Further
 detail about these options is available in the
-[`clean()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/clean.md)
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
 documentation.
 
 ### Replace
 
 The bulk of `knittogether`’s activity is in the
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
 function. This handles switching the placeholders with the relevant
 code-generated content.
 
 First, the code-based content must be created. This content can either
 be a scalar (a single named value such as `value = 42`) or non-scalar (a
 list as created by
-[`define_content()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/define_content.md)).
+[`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md)).
 This content is brought together into a single list with
-[`placeholder_map()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/placeholder_map.md).
+[`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md).
 For example:
 
 ``` r
@@ -290,16 +318,27 @@ multiple child qmds, consider using
 `{{< include data_processing.qmd >}}` in multiple child qmds.
 
 The contents and map are passed to the
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
-function which handles matching the content to the placeholders. Options
-such as `draft_mode` and `marker_mode` can be supplied which allow
-bookending this inserted content with markers to allow easy replacement
-when it is read back in (for instance “The inline value is
-–DRAFT_CONTENT– placeholder_total 42 –END_DRAFT_CONTENT–”).
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+function which handles matching the content to the placeholders.
+
+Two options control how the inserted content can be found again later:
+
+- `marker_mode` (default `"hidden"`) keeps a styled marker with the
+  placeholder name next to the content. Use `"hidden"` or `"show"` for
+  any document that will go back through Word.
+- `draft_mode` (default `TRUE`) wraps each inserted block in
+  `DRAFT_CONTENT_START` and `DRAFT_CONTENT_END`. Use it while the draft
+  is still being worked on. For the final render, set
+  `draft_mode = FALSE` and `marker_mode = "off"`: the output then has no
+  draft markers and no placeholder names, and it can be run straight
+  from the draft.
+
+With `draft_mode = TRUE` each block is written on its own lines: the
+start marker, the placeholder marker, the content, then the end marker.
 
 ``` r
 
-knittogether::replace(
+knittogether::replace_placeholders(
   markdown_file = file.path(temp_dir, "example.md"),
   placeholder_prefix = "placeholder_content",
   validation_path = file.path(temp_dir, "validation"),
@@ -322,10 +361,51 @@ Finally, the markdown can be included in a qmd file (for example through
 `{{< include workflow/example.qmd >}}`) which can be rendered in the
 relevant format, now including the code-based content.
 
-If output to Word or PowerPoint, the resulting file can be altered and
-read back into using `knittogether` again if required to add new or
-update existing code-based content (provided `draft_mode` has been
-used).
+Quarto needs the markdown to exist before it renders. The first render
+fails if the markdown the document includes has not been created yet, so
+run the knittogether build script before every render. In `_quarto.yml`,
+add a pre-render step so this happens automatically:
+
+``` yaml
+project:
+  pre-render: Rscript build.R
+```
+
+Here `build.R` is the script that calls
+[`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md),
+[`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
+and
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md).
+
+`marker_mode = "off"` writes no marker. The inserted content is then the
+only thing left in the document, and it can’t be found again when the
+document is read back from Word. Use `"hidden"` or `"show"` for any
+document that will go through a Word round trip.
+
+To go round again, render the draft to Word or PowerPoint, let the
+writer edit it, and then:
+
+1.  Convert the edited file with
+    [`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md).
+    [`latest_word_file()`](https://wyuill.github.io/knittogether/reference/latest_word_file.md)
+    finds the newest saved version in a folder, so the writer’s latest
+    edit is picked up. Save each output with
+    [`timestamped_path()`](https://wyuill.github.io/knittogether/reference/timestamped_path.md)
+    so earlier versions are kept and nothing is overwritten.
+2.  Clean it with
+    `clean_markdown(clear_draft = TRUE, placeholder_prefix = "knit")`,
+    which reduces each draft block to its placeholder. Pass the same
+    `placeholder_prefix` used when the draft was filled: the default
+    `"placeholder_content"` will not find `knit_` placeholders, and the
+    draft content is removed without a placeholder to refill.
+3.  Run
+    [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
+    again with the updated R code. The content is replaced rather than
+    duplicated.
+
+This only works when `draft_mode` was used on the earlier pass and the
+markers were kept (`marker_mode` is not `"off"`). The round-trip tests
+in the package check this sequence.
 
 For long content rendered to website or book format, it may be
 preferable to split the content across multiple pages. Ordinarily, this
@@ -343,7 +423,7 @@ the markdown.
 ### Validate
 
 Additionally
-[`replace()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace.md)
+[`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
 creates outputs that can be used to check the right code has been
 applied to the right placeholder and highlight any changes in the code.
 A csv log is created and, optionally, this can also be placed into a
@@ -357,7 +437,7 @@ precise.
 ### Next steps
 
 You can
-[`split()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/split.md)
+[`split_markdown()`](https://wyuill.github.io/knittogether/reference/split_markdown.md)
 a single extracted `.md` / `.qmd` file into multiple files that map
 cleanly onto [Quarto side
 navigation](https://quarto.org/docs/websites/website-navigation.html#side-navigation).

@@ -8,7 +8,7 @@ Quarto-based outputs without the usual friction.
 
 Useful links:
 
-- <https://sturdy-giggle-wwjo5pk.pages.github.io/>
+- <https://wyuill.github.io/knittogether/>
 
 ## Author
 
