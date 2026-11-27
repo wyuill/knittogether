@@ -35,5 +35,6 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: quarto, knitr
 SystemRequirements: Pandoc (>= 3.8.3) is required to read in Microsoft PowerPoint. Functions involving the import and/or export of citations require Zotero (https://www.zotero.org/download) to be installed and running and the BetterBibTex addin (https://github.com/retorquere/zotero-better-bibtex/releases) is required. To export live citations to .docx format, a lua filter (https://retorque.re/zotero-better-bibtex/exporting/zotero.lua) is required and must be specified in the YAML of the .qmd.
-URL: https://sturdy-giggle-wwjo5pk.pages.github.io/
+URL: https://wyuill.github.io/knittogether/
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

@@ -1,0 +1,162 @@
+# knittogether
+
+## Overview
+
+knittogether is an R package for reproducible collaboration between R
+users and non-R users. It helps teams produce high-quality Quarto
+outputs while reducing the friction of moving between Office and Quarto.
+
+- Import .docx / .pptx into markdown
+- Replace placeholders with R-generated content
+- Render back to Word, PowerPoint, HTML, etc.
+- Support round‑trip editing when working with non‑R colleagues
+  iteratively
+
+### Motivation
+
+Working with non-R users often involves tedious manual steps such as
+copy-pasting text, reformatting images, adjusting slide breaks, redoing
+citations, and then starting again when someone changes something. Yet
+their contributions are often essential for creating meaningful reports
+and presentations. knittogether streamlines this process by allowing you
+to seamlessly combine content from Quarto, Microsoft Word, and Microsoft
+PowerPoint, including:
+
+- Text sections
+- Images and tables
+- Citations and footnotes
+- Slide breaks and sections
+
+The result is a single, reproducible workflow that outputs to any
+Quarto-supported format (HTML, PDF, Word, PowerPoint, etc.), reducing
+errors and saving time for R users whilst allowing non-R users to
+contribute without technical barriers.
+
+## Installation
+
+    # install.packages("pak")
+    pak::pak("LBCamden/knittogether")
+
+As noted in the DESCRIPTION, if functions involving the import and/or
+export of citations are used then
+[Zotero](https://www.zotero.org/download) and
+[BetterBibTeX](https://github.com/retorquere/zotero-better-bibtex/releases)
+are required. To export live citations to .docx format, a [Lua
+filter](https://retorque.re/zotero-better-bibtex/exporting/zotero.lua)
+is required and must be specified in the YAML of the .qmd.
+
+## Usage
+
+knittogether follows a standard workflow convert→clean→replace.
+
+    library(knittogether)
+
+    # example.docx is a Word document containing placeholders indicating what and where code content should be added (e.g. `placeholder_content_plot`). It is converted into a markdown file.
+    convert(input_file = "example.docx", markdown_file = "example.md")
+
+    # The markdown is cleaned to ensure it works with Quarto
+    clean(markdown_file = "example.md")
+
+    # Code content is created and mapped onto the placeholders
+    plot <- define_content(
+      description = "A plot",
+      placeholder_id = "plot",
+      output_mode = "chunk",
+      content = { plot(1, 1) },
+      content_type = "plot",
+      chunk_options  = list(echo = FALSE))
+
+    map <- placeholder_map(specs = list(plot))
+
+    # The placeholders in the markdown are switched for the code content. The output is ready to use within a Quarto file and rendered to any format
+    replace(markdown_file = "example.md",
+      placeholder_prefix = "placeholder_content",
+      code_content = map)
+
+## Getting help
+
+- Browse the function documentation
+  (e.g. [`?knittogether::clean`](https://wyuill.github.io/knittogether/reference/clean.md))
+  and vignettes.
+
+- Please open an issue on GitHub or [get in
+  touch](https://jsna.camden.gov.uk/about/#get-in-touch).
+
+# Package index
+
+## All functions
+
+- [`accessibility_scan()`](https://wyuill.github.io/knittogether/reference/accessibility_scan.md)
+  : Accessibility Scanner for Images and Tables
+
+- [`add_pptx_backgrounds_to_headers()`](https://wyuill.github.io/knittogether/reference/add_pptx_backgrounds_to_headers.md)
+  : Add a Background Image to All Headers of Selected Levels in a String
+
+- [`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md)
+  : Automatically Insert Slide Breaks (Header-Aware)
+
+- [`clean()`](https://wyuill.github.io/knittogether/reference/clean.md)
+  : Clean Pandoc‑generated Markdown for use in Quarto (.qmd)
+
+- [`convert()`](https://wyuill.github.io/knittogether/reference/convert.md)
+  : Convert a Word or PowerPoint file to Markdown using Pandoc
+
+- [`define_content()`](https://wyuill.github.io/knittogether/reference/define_content.md)
+  : Define a content specification for insertion into a document
+
+- [`hide_markers_css()`](https://wyuill.github.io/knittogether/reference/hide_markers_css.md)
+  : CSS to hide placeholder markers in DOCX and HTML
+
+- [`insert_slide_break()`](https://wyuill.github.io/knittogether/reference/insert_slide_break.md)
+  : Insert a Slide Break After a Character Limit
+
+- [`is_pptx()`](https://wyuill.github.io/knittogether/reference/is_html.md)
+  [`is_docx()`](https://wyuill.github.io/knittogether/reference/is_html.md)
+  [`is_pdf()`](https://wyuill.github.io/knittogether/reference/is_html.md)
+  [`is_html()`](https://wyuill.github.io/knittogether/reference/is_html.md)
+  : Check if output is PPTX
+
+- [`output_type()`](https://wyuill.github.io/knittogether/reference/output_type.md)
+  : Detect output format
+
+- [`placeholder_map()`](https://wyuill.github.io/knittogether/reference/placeholder_map.md)
+  :
+
+  Create a list of Placeholders with their Content for
+  [`replace()`](https://rdrr.io/pkg/knittogether/man/replace.html)
+
+- [`pptx_col_start()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md)
+  [`pptx_col_break()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md)
+  [`pptx_col_end()`](https://wyuill.github.io/knittogether/reference/pptx_col_start.md)
+  : Initiating column structure of PowerPoint slide
+
+- [`pptx_section_slide()`](https://wyuill.github.io/knittogether/reference/pptx_section_slide.md)
+  : Add Slide Background Images
+
+- [`replace()`](https://wyuill.github.io/knittogether/reference/replace.md)
+  : Replace placeholders in a Markdown / Quarto document
+
+- [`run_workflow()`](https://wyuill.github.io/knittogether/reference/run_workflow.md)
+  : This function is a wrapper for the full knittogether workflow
+
+- [`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md)
+  : Insert a Slide Break
+
+- [`split()`](https://wyuill.github.io/knittogether/reference/split.md)
+  : Split a markdown file into section-specific markdown (and optional
+  Quarto) files
+
+# Articles
+
+### All vignettes
+
+- [Using
+  References](https://wyuill.github.io/knittogether/articles/citations.md):
+- [Extended
+  workflow](https://wyuill.github.io/knittogether/articles/extended-workflow.md):
+- [Getting started with
+  knittogether](https://wyuill.github.io/knittogether/articles/knittogether.md):
+- [Office styling and
+  layout](https://wyuill.github.io/knittogether/articles/office-styling.md):
+- [Working with
+  PowerPoint](https://wyuill.github.io/knittogether/articles/powerpoint.md):

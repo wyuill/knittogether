@@ -9,7 +9,7 @@ convert(
   markdown_file = "markdown_output.md",
   media_base_dir = ".",
   pandoc_args = NULL,
-  pandoc_version = "latest",
+  pandoc_version = "default",
   verbose = FALSE
 )
 }
@@ -32,7 +32,7 @@ Provide as a single string or character vector. Non-default markdown targets
 can change citation escaping, so \code{clean(clean_citations = TRUE)} may be
 useful downstream. Defaults to \code{NULL}.}
 
-\item{pandoc_version}{Pandoc version to use. Passed directly to \code{pandoc::pandoc_run()}. Defaults to \code{"latest"}.}
+\item{pandoc_version}{Pandoc version to use. Passed directly to \code{pandoc::pandoc_run()}. Defaults to \code{"default"}.}
 
 \item{verbose}{Logical. If \code{TRUE}, prints informative messages about the Pandoc command being executed and the location of
 extracted media (if any). Defaults to \code{FALSE}.}
