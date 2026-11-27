@@ -6,4 +6,5 @@ inst/doc
 /doc/
 /Meta/
 /vignettes/examples/**/
-docs
+docs/*
+!docs/.nojekyll
