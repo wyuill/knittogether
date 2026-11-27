@@ -1,0 +1,13 @@
+pandoc: '3.10'
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  citations: citations.html
+  extended-workflow: extended-workflow.html
+  knittogether: knittogether.html
+  office-styling: office-styling.html
+  powerpoint: powerpoint.html
+last_built: 2026-11-27T12:37Z
+urls:
+  reference: https://sturdy-giggle-wwjo5pk.pages.github.io/reference
+  article: https://sturdy-giggle-wwjo5pk.pages.github.io/articles

@@ -1,0 +1,4 @@
+# License
+
+    YEAR: 2025
+    COPYRIGHT HOLDER: knittogether authors and London Borough of Camden Public Health Intelligence (Health & Wellbeing)

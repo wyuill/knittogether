@@ -1,0 +1,445 @@
+# Extended workflow
+
+This vignette contains a reproducible example of knittogether. The code
+can be copied into a .R, .rmd, or .qmd file should you wish to run it
+locally.
+
+## The workflow at a glance
+
+knittogether lets a writer work in Word or PowerPoint while a coder
+fills in R output, and then rebuild the finished report from the code.
+Either person can start, and the loop repeats until the report is final.
+
+``` mermaid
+flowchart LR
+  A["Writer adds placeholders<br/>in the Word draft"] --> B["Coder: convert, clean,<br/>replace_placeholders()"]
+  B --> C["Writer edits the draft<br/>in Word, around the R output"]
+  C --> D["Coder: convert, clean with<br/>clear_draft, replace again"]
+  D --> C
+  D --> E["Final render with<br/>draft_mode = FALSE"]
+```
+
+Three terms are used throughout:
+
+- **Placeholder**: plain text in the Word file made of a common prefix
+  and an ID, for example `placeholder_content_total`. It marks where R
+  output goes.
+- **Marker**: a styled span that keeps the placeholder name in the
+  Markdown, so it can be found again on the next pass. Set with
+  `marker_mode`.
+- **Draft block**: the R output wrapped between `DRAFT_CONTENT_START`
+  and `DRAFT_CONTENT_END`. The writer can edit around it, and
+  `clean_markdown(clear_draft = TRUE)` reduces it back to its
+  placeholder.
+
+> **Vignette reproducibility**
+>
+> To make this vignette fully reproducible the following files are
+> created through code, though typically would be made manually with
+> other software:
+>
+> - **word.docx**: A Word document containing all the basic features
+>   knittogether supports (e.g. an image, table, and citations) and some
+>   placeholders. This is created by via a Quarto document.
+>
+> - **child.qmd**: A Quarto file that contains some of the code to
+>   replace one of the placeholders with.
+>
+> - **bibliography.bib**: A file containing the reference details of the
+>   citation.
+>
+> These are stored in a temporary directory and this is reflected in the
+> file paths being wrapped in `file.path(temp_dir, file).` This is not
+> needed for normal usage.
+>
+> The code to create the files is below and includes an option for docx
+> and pptx. Note for pptx pandoc 3.8.3 or higher is required.
+>
+> Code
+>
+> ``` r
+>
+> library(pandoc)
+> library(withr)
+> # Use a temporary working directory for this vignette
+> temp_dir <- file.path(tempdir(), "knittogether_vignette_workflow")
+> dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
+>
+> # This function allows for easy recreation of a starting state to use knittogether from
+> create_base_files <- function(output = "docx", child_qmd = TRUE, image = TRUE, bib = TRUE, render) {
+>   
+>   if(child_qmd) {
+>   child_qmd <- paste(
+>     "## Content from a child qmd",
+>     "",
+>     "```{r}",
+>     "plot(1, 1)",
+>     "```",
+>     "",
+>     "The addition of 1 and 1 is `r 1+1`.",
+>     "",
+>     sep = "\n")
+>
+>   writeLines(child_qmd, file.path(temp_dir, "child_example.qmd"))
+>   }
+>
+>   if(image) {
+>   png(file.path(temp_dir, "image.png"), width = 600, height = 400)
+>   x <- 1:10
+>   plot(x, x^2, type = "b", col = "blue", pch = 19,
+>        main = "Example Image Created in R", xlab = "X values", ylab = "Y values (squared)")
+>   dev.off()
+>   }
+>   
+>   if(bib) {
+>   bib <- ("@book{roseRosesStrategyPreventive2008,
+>           title = {Rose's {{Strategy}} of {{Preventive Medicine}}},
+>           author = {Rose, Geoffrey},
+>           year = 2008,
+>           month = jan,
+>           publisher = {OUP Oxford},
+>           abstract = {},
+>           isbn = {978-0-19-101559-5}
+>           }"
+>           )
+>     
+>     writeLines(bib, file.path(temp_dir, "example.bib"))
+>   }
+>   
+>   if(output == "docx") {
+>   example_qmd <- r"(
+> ---
+> title: "Example Word Document"
+> subtitle: "This document is used as a knittogether example"
+> format: docx
+> ---
+>
+> # Introduction
+>
+> Lorem ipsum dolor sit amet.[@roseRosesStrategyPreventive2008]
+>
+> ![Fig 1. A plot](image.png){fig-alt="A image"}
+>
+> ## More info
+>
+>   -   Lorem ipsum dolor sit amet consectetur adipiscing elit.
+>   -   Quisque faucibus ex sapien vitae pellentesque sem placerat.
+>   -   Tempus leo eu aenean sed diam urna tempor.
+>
+> # Main content
+>
+> Lorem ipsum dolor sit amet consectetur adipiscing elit. placeholder_content_total.
+>
+>   1.  Quisque faucibus ex sapien vitae pellentesque sem placerat.
+>       1.  In id cursus mi pretium tellus duis convallis.
+>   2.  Tempus leo eu aenean sed diam urna tempor.
+>
+> | Col1 | Col2 | Col3 |
+> |------|------|------|
+> | A    | 1    | 4    |
+> | B    | 2    | 5    |
+> | C    | 3    | 6    |
+>
+> : Table 1. This is a table
+>
+> Lorem ipsum dolor sit amet consectetur adipiscing elit.
+>
+> placeholder_content_childqmd
+>
+> Lorem ipsum dolor sit amet consectetur adipiscing elit.
+>
+> placeholder_content_1x1plot
+>
+> Lorem ipsum dolor sit amet consectetur adipiscing elit.
+>
+> The number of rows in the data set is placeholder_content_mtcarsrows.
+> )"
+>   
+>   writeLines(example_qmd, file.path(temp_dir, "example.qmd"))
+>   
+>   if(render) {
+>     pandoc::pandoc_run(c(file.path(temp_dir, "example.qmd"), "-f", 
+>                          "markdown", "-o", file.path(temp_dir, "example.docx")))
+>     }
+>   } else if(output == "pptx") {
+>     example_qmd <- r"(
+> ---
+> title: "Example PowerPoint Presentation"
+> subtitle: "This presentation is used as a knittogether example"
+> format: pptx
+> ---
+>
+> # Introduction
+>   
+> ## Background
+>
+> Lorem ipsum dolor sit amet.
+>
+> # Main Content
+>
+> ## Dinner
+>
+>   -   Lorem ipsum dolor sit amet consectetur adipiscing elit.
+>   -   Quisque faucibus ex sapien vitae pellentesque sem placerat.
+>   -   Tempus leo eu aenean sed diam urna tempor.
+>
+> Lorem ipsum dolor sit amet consectetur adipiscing elit. placeholder_content_total.
+>
+>   1.  Quisque faucibus ex sapien vitae pellentesque sem placerat.
+>       1.  In id cursus mi pretium tellus duis convallis.
+>   2.  Tempus leo eu aenean sed diam urna tempor.
+>
+> ## A plot
+>
+> placeholder_content_1x1plot
+>
+> )"
+>   
+>   writeLines(example_qmd, file.path(temp_dir, "example.qmd"))
+>     
+>     if(render) {
+>       pandoc::pandoc_run(c(file.path(temp_dir, "example.qmd"), "-f", 
+>                            "markdown", "-o", file.path(temp_dir, "example.pptx")))
+>       }
+>   }
+> }
+>
+> create_base_files(output = "docx")
+> ```
+
+### Convert
+
+Here the input file (in this case a .docx) will be converted into a
+markdown file. The image found in the docx is also produced into a
+folder called `media/`.
+
+``` r
+
+knittogether::convert_markdown(input_file = file.path(temp_dir, "example.docx"),
+                      markdown_file = file.path(temp_dir, "example.md"), 
+                      media_base_dir = file.path(temp_dir, "workflow"),
+                      pandoc_version = "default")
+```
+
+In this case the contents of the Word document are relatively simple. If
+for instance the document contained a table with very long text or line
+breaks then other `pandoc_args` may need to be passed such as a command
+to use GitHub Flavored Markdown (`-t gfm`). If required the
+[`pandoc::pandoc_run()`](https://cderv.github.io/pandoc/reference/pandoc_run.html)
+function can be used to fully specify the conversion options. Note that
+these can have knock on effects that mean the markdown requires further
+cleaning to be processed correctly.
+
+### Clean
+
+If required cleaning can be performed. In this case
+
+- `heading_offset` is used to demote headers down a level because level
+  1 headings in Word are converted to level 1 headings in HTML, which
+  are typically reserved for page titles.
+
+- `clean_citations` is used to remove the excess `/` when importing
+  citations.
+
+``` r
+
+knittogether::clean_markdown(markdown_file = file.path(temp_dir, "example.md"),
+                    heading_offset = T,
+                    clean_citations = T)
+```
+
+If working with a file generated through knittogether, options such as
+`clear_draft` and `clear_placeholder_styling` may be useful. Further
+detail about these options is available in the
+[`clean_markdown()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/clean_markdown.md)
+documentation.
+
+### Replace
+
+The bulk of `knittogether`’s activity is in the
+[`replace_placeholders()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace_placeholders.md)
+function. This handles switching the placeholders with the relevant
+code-generated content.
+
+First, the code-based content must be created. This content can either
+be a scalar (a single named value such as `value = 42`) or non-scalar (a
+list as created by
+[`define_content()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/define_content.md)).
+This content is brought together into a single list with
+[`placeholder_map()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/placeholder_map.md).
+For example:
+
+``` r
+
+# Example with a child quarto document
+child <- knittogether::define_content(
+  description = "A plot in a child qmd",
+  placeholder_id = "childqmd",
+  output_mode = "chunk",
+  content = "{{< include child_example.qmd >}}",
+  content_type = "plot",
+  chunk_options = list(engine = "r", as_child = TRUE, 
+                       child_dir = "children", echo = FALSE, fig.width = 7))
+
+# Example with a function
+plot <- knittogether::define_content(
+  description = "A plot",
+  placeholder_id = "1x1plot",
+  output_mode = "chunk", 
+  content = { plot(1, 1) },
+  content_type = "plot",
+  chunk_options  = list(echo = FALSE, warning = FALSE, message = FALSE, fig.width = 7))
+
+# Example of inline content
+inline <- knittogether::define_content(
+  description = "Number of rows in mtcars",
+  placeholder_id = "mtcarsrows",
+  output_mode = "inline",
+  content = { nrow(mtcars) },
+  content_type = "text")
+
+map <- knittogether::placeholder_map(
+  specs = list(child, plot, inline),
+  scalars = list(total = 42)
+)
+```
+
+Scalars are quick to define but have limited scope as they must be
+inline text and lack the validation checks that non-scalar content has
+like descriptions.
+
+When using child documents, be conscious of relative paths. To avoid
+errors, keep the parent qmd, input file (docx or pptx), processed
+markdown output, and a folder of child qmds in the same directory. Care
+also needs to be taken to ensure the variables required to evaluate code
+are available in the context in which it is evaluated (i.e., child qmds
+need access to variables called within them). If data is needed across
+multiple child qmds, consider using
+`{{< include data_processing.qmd >}}` in multiple child qmds.
+
+The contents and map are passed to the
+[`replace_placeholders()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace_placeholders.md)
+function which handles matching the content to the placeholders.
+
+Two options control how the inserted content can be found again later:
+
+- `marker_mode` (default `"hidden"`) keeps a styled marker with the
+  placeholder name next to the content. Use `"hidden"` or `"show"` for
+  any document that will go back through Word.
+- `draft_mode` (default `TRUE`) wraps each inserted block in
+  `DRAFT_CONTENT_START` and `DRAFT_CONTENT_END`. Use it while the draft
+  is still being worked on. For the final render, set
+  `draft_mode = FALSE` and `marker_mode = "off"`: the output then has no
+  draft markers and no placeholder names, and it can be run straight
+  from the draft.
+
+With `draft_mode = TRUE` each block is written on its own lines: the
+start marker, the placeholder marker, the content, then the end marker.
+
+``` r
+
+knittogether::replace_placeholders(
+  markdown_file = file.path(temp_dir, "example.md"),
+  placeholder_prefix = "placeholder_content",
+  validation_path = file.path(temp_dir, "validation"),
+  code_content = map,
+  draft_mode = F,
+  marker_mode = "off"
+)
+```
+
+The markdown document now includes the code-based content specified.
+
+Lorem ipsum dolor sit amet consectetur adipiscing elit. {{\\ include
+children/child_childqmd.qmd \>}} Lorem ipsum dolor sit amet consectetur
+adipiscing elit. ::: {.cell} ::: Lorem ipsum dolor sit amet consectetur
+adipiscing elit. The number of rows in the data set is 32.
+
+### Output
+
+Finally, the markdown can be included in a qmd file (for example through
+`{{< include workflow/example.qmd >}}`) which can be rendered in the
+relevant format, now including the code-based content.
+
+Quarto needs the markdown to exist before it renders. The first render
+fails if the markdown the document includes has not been created yet, so
+run the knittogether build script before every render. In `_quarto.yml`,
+add a pre-render step so this happens automatically:
+
+``` yaml
+project:
+  pre-render: Rscript build.R
+```
+
+Here `build.R` is the script that calls
+[`convert_markdown()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/convert_markdown.md),
+[`clean_markdown()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/clean_markdown.md)
+and
+[`replace_placeholders()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace_placeholders.md).
+
+`marker_mode = "off"` writes no marker. The inserted content is then the
+only thing left in the document, and it can’t be found again when the
+document is read back from Word. Use `"hidden"` or `"show"` for any
+document that will go through a Word round trip.
+
+To go round again, render the draft to Word or PowerPoint, let the
+writer edit it, and then:
+
+1.  Convert the edited file with
+    [`convert_markdown()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/convert_markdown.md).
+    [`latest_word_file()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/latest_word_file.md)
+    finds the newest saved version in a folder, so the writer’s latest
+    edit is picked up. Save each output with
+    [`timestamped_path()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/timestamped_path.md)
+    so earlier versions are kept and nothing is overwritten.
+2.  Clean it with
+    `clean_markdown(clear_draft = TRUE, placeholder_prefix = "knit")`,
+    which reduces each draft block to its placeholder. Pass the same
+    `placeholder_prefix` used when the draft was filled: the default
+    `"placeholder_content"` will not find `knit_` placeholders, and the
+    draft content is removed without a placeholder to refill.
+3.  Run
+    [`replace_placeholders()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace_placeholders.md)
+    again with the updated R code. The content is replaced rather than
+    duplicated.
+
+This only works when `draft_mode` was used on the earlier pass and the
+markers were kept (`marker_mode` is not `"off"`). The round-trip tests
+in the package check this sequence.
+
+For long content rendered to website or book format, it may be
+preferable to split the content across multiple pages. Ordinarily, this
+would require separate files to be created, each with relevant content
+so they appear on the
+[sidebar](https://quarto.org/docs/websites/website-navigation.html#side-navigation).
+The [quarto-external](https://github.com/mcanouil/quarto-external)
+extension provides a method of extracting only a section of an input
+file. For instance, an almost empty qmd could be created for each page
+with `{{< external <file>#<section> >}}` added to include a specific
+section from the single markdown file generated through knittogether. If
+preferred, content can be manually copied or a script set up to split
+the markdown.
+
+### Validate
+
+Additionally
+[`replace_placeholders()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/replace_placeholders.md)
+creates outputs that can be used to check the right code has been
+applied to the right placeholder and highlight any changes in the code.
+A csv log is created and, optionally, this can also be placed into a
+html file containing a `reactable` table allowing easier navigation of
+the information in the csv.
+
+It can be beneficial to add more, smaller placeholders so that
+descriptions of content can be more specific and validation more
+precise.
+
+### Next steps
+
+You can
+[`split_markdown()`](https://sturdy-giggle-wwjo5pk.pages.github.io/reference/split_markdown.md)
+a single extracted `.md` / `.qmd` file into multiple files that map
+cleanly onto [Quarto side
+navigation](https://quarto.org/docs/websites/website-navigation.html#side-navigation).
+This is useful when the input document is a single long document that
+would be better navigated as multiple web pages.
