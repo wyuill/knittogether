@@ -11,14 +11,8 @@
 - [`auto_slide_break()`](https://wyuill.github.io/knittogether/reference/auto_slide_break.md)
   : Automatically Insert Slide Breaks (Header-Aware)
 
-- [`clean()`](https://wyuill.github.io/knittogether/reference/clean.md)
-  : Clean Pandoc‑generated Markdown for use in Quarto (.qmd)
-
 - [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
   : Clean Pandoc‑generated Markdown for use in Quarto (.qmd)
-
-- [`convert()`](https://wyuill.github.io/knittogether/reference/convert.md)
-  : Convert a Word or PowerPoint file to Markdown using Pandoc
 
 - [`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md)
   : Convert a Word or PowerPoint file to Markdown using Pandoc
@@ -58,9 +52,6 @@
 - [`pptx_section_slide()`](https://wyuill.github.io/knittogether/reference/pptx_section_slide.md)
   : Add Slide Background Images
 
-- [`replace()`](https://wyuill.github.io/knittogether/reference/replace.md)
-  : Replace placeholders in a Markdown / Quarto document
-
 - [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
   : Replace placeholders in a Markdown / Quarto document
 
@@ -69,10 +60,6 @@
 
 - [`slide_break()`](https://wyuill.github.io/knittogether/reference/slide_break.md)
   : Insert a Slide Break
-
-- [`split()`](https://wyuill.github.io/knittogether/reference/split.md)
-  : Split a markdown file into section-specific markdown (and optional
-  Quarto) files
 
 - [`split_markdown()`](https://wyuill.github.io/knittogether/reference/split_markdown.md)
   : Split a markdown file into section-specific markdown (and optional

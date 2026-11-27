@@ -7,17 +7,13 @@
 - Functions are renamed to a verb-noun pattern so they don’t clash with
   functions in other packages. The old names are removed without
   deprecation:
-  - [`convert()`](https://wyuill.github.io/knittogether/reference/convert.md)
-    is now
+  - `convert()` is now
     [`convert_markdown()`](https://wyuill.github.io/knittogether/reference/convert_markdown.md)
-  - [`clean()`](https://wyuill.github.io/knittogether/reference/clean.md)
-    is now
+  - `clean()` is now
     [`clean_markdown()`](https://wyuill.github.io/knittogether/reference/clean_markdown.md)
-  - [`split()`](https://wyuill.github.io/knittogether/reference/split.md)
-    is now
+  - [`split()`](https://rdrr.io/r/base/split.html) is now
     [`split_markdown()`](https://wyuill.github.io/knittogether/reference/split_markdown.md)
-  - [`replace()`](https://wyuill.github.io/knittogether/reference/replace.md)
-    is now
+  - [`replace()`](https://rdrr.io/r/base/replace.html) is now
     [`replace_placeholders()`](https://wyuill.github.io/knittogether/reference/replace_placeholders.md)
     \## Bug fixes
 - `%||%` is now imported from rlang, so the package no longer needs R
