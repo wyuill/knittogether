@@ -14,6 +14,6 @@
 )
 }
 \description{
-Called by replace() when a chunk uses \code{as_child = TRUE}.
+Called by replace_placeholders() when a chunk uses \code{as_child = TRUE}.
 }
 \keyword{internal}

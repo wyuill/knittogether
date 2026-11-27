@@ -32,7 +32,7 @@ If \code{NULL} the report is not generated. Default: \code{"validation.html"}.}
 Invisibly returns the current validation data frame (including change flags).
 }
 \description{
-Internal developer-facing utility used by \code{\link[=replace]{replace()}} to compare current
+Internal developer-facing utility used by \code{\link[=replace_placeholders]{replace_placeholders()}} to compare current
 placeholder code content against the latest logged state (CSV) and record
 change metadata. Optionally generates an HTML report (Quarto + reactable)
 from the same CSV.

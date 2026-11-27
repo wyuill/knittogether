@@ -1,7 +1,7 @@
 #' Generate a quality check log for placeholder replacements (developer utility)
 #'
 #' @description
-#' Internal developer-facing utility used by [replace()] to compare current
+#' Internal developer-facing utility used by [replace_placeholders()] to compare current
 #' placeholder code content against the latest logged state (CSV) and record
 #' change metadata. Optionally generates an HTML report (Quarto + reactable)
 #' from the same CSV.

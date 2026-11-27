@@ -48,7 +48,7 @@ This supports a full docx→markdown→docx cycle with live references throughou
 
 ## Troubleshooting
 
--   Errors with citations can be caused by excess `\` created during conversion. This typically occurs when a different markdown variant is used (e.g. `convert(pandoc_args='--to=markdown_strict')`). Setting `clean(clean_citations = TRUE)` should resolve these issues.
+-   Errors with citations can be caused by excess `\` created during conversion. This typically occurs when a different markdown variant is used (e.g. `convert_markdown(pandoc_args='--to=markdown_strict')`). Setting `clean_markdown(clean_citations = TRUE)` should resolve these issues.
 
 -   If citations are not linked to a bibliography entry in the output, this is typically due to a mismatch between the keys imported from Word and the keys exported in the .bib file. This can occur sporadically and can be solved by editing the citekey field in Zotero for affected items.
 

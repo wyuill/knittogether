@@ -4,24 +4,34 @@
 \alias{run_workflow}
 \title{This function is a wrapper for the full knittogether workflow}
 \usage{
-run_workflow(...)
+run_workflow(..., base_name = NULL)
 }
 \arguments{
 \item{...}{Additional arguments passed to the underlying functions}
+
+\item{base_name}{Optional. When \code{input_file} is a folder, only files whose names start with this text are
+considered.}
 }
 \value{
 Invisibly returns the updated Markdown (character vector).
 }
 \description{
-This function calls the \code{\link[=convert]{convert()}}, \code{\link[=clean]{clean()}}, and \code{\link[=replace]{replace()}} functions to extract docx or pptx
+This function calls the \code{\link[=convert_markdown]{convert_markdown()}}, \code{\link[=clean_markdown]{clean_markdown()}}, and \code{\link[=replace_placeholders]{replace_placeholders()}} functions to extract docx or pptx
 content to markdown, clean this markdown, and then replace any placeholders with code generated content, simplifying
 using the workflow.
 }
 \details{
 The wrapper determines which arguments belong to which function by matching argument names against the formal
-arguments of \code{\link[=convert]{convert()}}, \code{\link[=replace]{replace()}}, and \code{\link[=clean]{clean()}}. Arguments not recognised by any function will be ignored.
+arguments of \code{\link[=convert_markdown]{convert_markdown()}}, \code{\link[=replace_placeholders]{replace_placeholders()}}, and \code{\link[=clean_markdown]{clean_markdown()}}. Arguments not recognised by any function will be ignored.
 Defaults for all parameters are taken from the underlying functions.
+
+Each step takes the previous step's output as its input. The markdown written by \code{\link[=convert_markdown]{convert_markdown()}} is cleaned,
+and the file \code{\link[=clean_markdown]{clean_markdown()}} writes (its \code{output_file}, if one is given) is the file filled in by
+\code{\link[=replace_placeholders]{replace_placeholders()}}. So \code{output_file} in \code{clean_markdown} is used, not ignored.
+
+If \code{input_file} is a folder, the newest Word or PowerPoint file in it is used, optionally restricted to names that
+start with \code{base_name} (see \code{\link[=latest_word_file]{latest_word_file()}}).
 }
 \seealso{
-\code{\link[=convert]{convert()}}, \code{\link[=replace]{replace()}}, \code{\link[=clean]{clean()}}
+\code{\link[=convert_markdown]{convert_markdown()}}, \code{\link[=replace_placeholders]{replace_placeholders()}}, \code{\link[=clean_markdown]{clean_markdown()}}, \code{\link[=latest_word_file]{latest_word_file()}}
 }

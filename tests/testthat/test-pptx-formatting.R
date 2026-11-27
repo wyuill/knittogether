@@ -62,6 +62,38 @@ test_that("auto_slide_break() repeatedly applies insert_slide_break()", {
 	expect_true(length(gregexpr("\\n\\n---\\n\\n", out)[[1]]) > 1)
 })
 
+test_that("auto_slide_break() terminates when a segment starts with a slide-level header", {
+	txt <- paste0("## Title\n\n", strrep("word ", 40))
+	setTimeLimit(elapsed = 10, transient = TRUE)
+	on.exit(setTimeLimit(elapsed = Inf), add = TRUE)
+	out <- auto_slide_break(txt, limit = 60, break_fun = function() "---")
+	segs <- strsplit(out, "\n\n---\n\n", fixed = TRUE)[[1]]
+	expect_true(length(segs) > 1)
+	expect_false(any(segs == ""))
+	expect_true(startsWith(out, "## Title"))
+})
+
+test_that("auto_slide_break() terminates when a segment starts with a non-slide header", {
+	txt <- paste0("### Sub\n\n", strrep("word ", 40))
+	setTimeLimit(elapsed = 10, transient = TRUE)
+	on.exit(setTimeLimit(elapsed = Inf), add = TRUE)
+	out <- auto_slide_break(txt, limit = 60, break_fun = function() "---")
+	expect_false(any(strsplit(out, "\n\n---\n\n", fixed = TRUE)[[1]] == ""))
+})
+
+test_that("insert_slide_break() never breaks before a header at position 1", {
+	txt <- paste0("## Title\n\n", strrep("word ", 40))
+	out <- insert_slide_break(txt, limit = 60, break_fun = function() "---")
+	expect_false(startsWith(out, "\n\n---"))
+	expect_true(startsWith(out, "## Title"))
+})
+
+test_that("auto_slide_break() still breaks before a later slide-level header", {
+	txt <- paste0(strrep("a ", 10), "\n\n## Next\n\n", strrep("b ", 10))
+	out <- auto_slide_break(txt, limit = 30, break_fun = function() "---")
+	expect_match(out, "\n\n---\n\n## Next", fixed = TRUE)
+})
+
 # Column helpers --------------------------------------------------------------
 
 test_that("pptx_col_start/break/end return text for non-HTML", {
@@ -200,7 +232,7 @@ test_that("convert creates a markdown file from pptx", {
 
   make_pptx_from_md("Hello **slides**", input)
 
-  res <- convert(
+  res <- convert_markdown(
     input_file     = input,
     markdown_file  = output,
     media_base_dir = NULL,
@@ -240,7 +272,7 @@ test_that("media extraction works with a PPTX containing embedded images", {
     pandoc::pandoc_run(c("slide.md", "-f", "markdown", "-t", "pptx", "-o", "with_media.pptx"))
   })
 
-  res <- convert(
+  res <- convert_markdown(
     input_file     = input,
     markdown_file  = output,
     media_base_dir = media_base,
@@ -253,4 +285,28 @@ test_that("media extraction works with a PPTX containing embedded images", {
   extracted <- list.files(res$media_dir, recursive = TRUE)
   expect_true(length(extracted) >= 1)
   expect_equal(res$markdown_file, output)
+})
+
+# Headings inside code ----
+test_that("insert_slide_break() does not break at a comment inside a code chunk", {
+	txt <- paste0(
+		strrep("a ", 10), "\n\n",
+		"```{r}\n# comment\nx <- 1\n```\n\n",
+		strrep("b ", 40)
+	)
+	out <- insert_slide_break(txt, limit = 60, break_fun = function() "---")
+	expect_no_match(out, "---\n\n# comment", fixed = TRUE)
+	expect_match(out, "```{r}\n# comment", fixed = TRUE)
+})
+
+test_that("add_pptx_backgrounds_to_headers() skips # lines in code", {
+	bg_dir <- withr::local_tempdir()
+	file.create(file.path(bg_dir, "blue.png"))
+	txt <- "# Real\n\n```{r}\n# comment\n```"
+
+	out <- add_pptx_backgrounds_to_headers(txt, levels = 1, bg = "blue", bg_dir = bg_dir)
+	lines <- strsplit(out, "\n", fixed = TRUE)[[1]]
+
+	expect_match(lines[1], "^# Real {background-image=", fixed = FALSE, perl = TRUE)
+	expect_identical(lines[4], "# comment")
 })

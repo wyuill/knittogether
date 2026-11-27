@@ -7,6 +7,6 @@
 .build_marker(token, marker_mode, style_hidden, style_visible)
 }
 \description{
-Constructs a Pandoc-style span representing a placeholder marker with styling applied according to \code{marker_mode} in \code{\link[=replace]{replace()}}.
+Constructs a Pandoc-style span representing a placeholder marker with styling applied according to \code{marker_mode} in \code{\link[=replace_placeholders]{replace_placeholders()}}.
 }
 \keyword{internal}

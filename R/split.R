@@ -27,17 +27,18 @@
 #'   account for sections being written to subdirectories. Defaults to TRUE. Set to
 #'   FALSE to leave include paths unchanged.
 #'
-#' @return A character vector of paths to the created files.
+#' @return A character vector of paths to the created files. If there was content before the first split point (for
+#'   example YAML front matter), it is saved to `split_preamble.md` beside the input file and its path comes first.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' split(
+#' split_markdown(
 #'   "slides.md",
 #'   qmd = "separate"
 #' )
 #' }
-split <- function(markdown_file,
+split_markdown <- function(markdown_file,
                   output_dir = NULL,
                   split_pattern = "^# ",
                   qmd = c("none", "separate", "embed"),
@@ -56,6 +57,10 @@ split <- function(markdown_file,
     stop("No split points found using split_pattern", call. = FALSE)
   }
 
+  # Content before the first split point (for example YAML front matter) is not part of any section. Keep it in its
+  # own file rather than dropping it.
+  preamble_lines <- if (split_idx[1] > 1) lines[seq_len(split_idx[1] - 1)] else character()
+
   split_idx <- c(split_idx, length(lines) + 1)
 
   sections <- lapply(seq_len(length(split_idx) - 1), function(i) {
@@ -70,10 +75,18 @@ split <- function(markdown_file,
       gsub("(^-|-$)", "", x = .)
   }
 
+  # Section folders come from the headings. Empty slugs get a name, and repeated headings get a numeric suffix so
+  # that two sections with the same heading don't write to the same folder.
+  slugs <- slugify(headers)
+  slugs[!nzchar(slugs)] <- "section"
+  repeat_n <- ave(seq_along(slugs), slugs, FUN = seq_along)
+  slugs <- ifelse(repeat_n > 1, paste0(slugs, "-", repeat_n), slugs)
+
   if (is.null(output_dir)) {
-    output_dirs <- slugify(headers)
+    output_dirs <- slugs
   } else if (length(output_dir) == 1) {
-    output_dirs <- rep(output_dir, length(sections))
+    # One parent folder: each section gets its own subfolder inside it
+    output_dirs <- file.path(output_dir, slugs)
   } else {
     if (length(output_dir) != length(sections)) {
       stop("Length of output_dir must equal number of splits", call. = FALSE)
@@ -94,6 +107,15 @@ split <- function(markdown_file,
 
   output_paths <- character(length(sections))
 
+  preamble_path <- NULL
+  if (any(nzchar(trimws(preamble_lines)))) {
+    preamble_path <- file.path(dirname(markdown_file), "split_preamble.md")
+    writeLines(preamble_lines, preamble_path)
+    cli::cli_inform(
+      "Content before the first split point was saved to {.file {preamble_path}} rather than dropped."
+    )
+  }
+
   for (i in seq_along(sections)) {
 
     dir <- output_dirs[i]
@@ -112,7 +134,7 @@ split <- function(markdown_file,
 
       qmd_lines <- c(
         "---",
-        paste0("title: \"", title, "\""),
+        paste0("title: ", .yaml_string(title)),
         paste0("order: ", i),
         "---",
         "",
@@ -131,7 +153,7 @@ split <- function(markdown_file,
       if (qmd == "separate") {
         qmd_lines <- c(
           "---",
-          paste0("title: \"", title, "\""),
+          paste0("title: ", .yaml_string(title)),
           paste0("order: ", i),
           "---",
           "",
@@ -145,5 +167,17 @@ split <- function(markdown_file,
     output_paths[i] <- out
   }
 
-  output_paths
+  c(preamble_path, output_paths)
+}
+
+#' Quote a string for YAML (internal)
+#'
+#' Wraps the value in double quotes, escaping backslashes and double quotes, so titles containing `"` or `\`
+#' don't break the front matter.
+#' @keywords internal
+#' @noRd
+.yaml_string <- function(x) {
+	x <- gsub("\\\\", "\\\\\\\\", x)
+	x <- gsub("\"", "\\\\\"", x)
+	paste0("\"", x, "\"")
 }

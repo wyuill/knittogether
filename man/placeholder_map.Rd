@@ -2,7 +2,7 @@
 % Please edit documentation in R/replace.R
 \name{placeholder_map}
 \alias{placeholder_map}
-\title{Create a list of Placeholders with their Content for \code{\link[=replace]{replace()}}}
+\title{Create a list of Placeholders with their Content for \code{\link[=replace_placeholders]{replace_placeholders()}}}
 \usage{
 placeholder_map(specs = list(), scalars = list())
 }
@@ -15,7 +15,7 @@ placeholder_map(specs = list(), scalars = list())
 A named list mapping slugs to scalars or \code{content_spec}s.
 }
 \description{
-Constructs a named list for use in \code{\link[=replace]{replace()}} by:
+Constructs a named list for use in \code{\link[=replace_placeholders]{replace_placeholders()}} by:
 \itemize{
 \item extracting slugs from each \code{content_spec} in \code{specs};
 \item using names of scalar values from \code{scalars}.

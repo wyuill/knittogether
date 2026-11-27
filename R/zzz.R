@@ -1,13 +1,12 @@
 #' @noRd
 #' @description This function checks Pandoc availability and version requirements when the package is attached.
 .onAttach <- function(libname, pkgname) {
-	pandoc_min_version <- numeric_version("3.8.3")
+	pandoc_min_version <- .pandoc_min_version()
 
-	pandoc_default <- tryCatch(pandoc::pandoc_version("default"), error = function(e) numeric_version("0"))
+	resolved <- .resolve_pandoc("default")
 
-	pandoc_latest <- tryCatch(pandoc::pandoc_version("latest"), error = function(e) numeric_version("0"))
-
-	if (pandoc_default < pandoc_min_version) {
+	if (resolved$ver < pandoc_min_version) {
+		pandoc_latest <- tryCatch(pandoc::pandoc_version("latest"), error = function(e) numeric_version("0"))
 		if (pandoc_latest < pandoc_min_version) {
 			cli::cli_inform(
 				paste(

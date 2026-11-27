@@ -4,7 +4,7 @@
 #' @return CSS string.
 #' @export
 hide_markers_css <- function() {
-  'span[custom-style="PlaceholderMarker"] { display: none !important; }'
+  'span[data-custom-style="PlaceholderMarker"] { display: none !important; }'
 }
 
 #' Check if output is PPTX
@@ -25,7 +25,7 @@ is_docx <- function() {
 #' @rdname is_html
 #' @export
 is_pdf <- function() {
-  knitr::pandoc_to('pdf')
+  knitr::is_latex_output()
 }
 
 #' Check if output is HTML
@@ -55,6 +55,65 @@ output_type <- function() {
   } else {
     "unknown"
   }
+}
+
+#' Flag lines that are code or YAML front matter (internal)
+#'
+#' Marks lines inside fenced code blocks (```` ``` ```` or `~~~`, including the fence lines) and inside YAML front
+#' matter at the top of the document. Header scanners use this so that `#| echo: false` and `# comments` in code are
+#' never treated as headings.
+#'
+#' @param lines Character vector, one element per line.
+#' @return Logical vector the same length as `lines`.
+#' @keywords internal
+#' @noRd
+.code_or_yaml_lines <- function(lines) {
+  out <- logical(length(lines))
+  if (!length(lines)) {
+    return(out)
+  }
+
+  i <- 1L
+  if (grepl("^---\\s*$", lines[1])) {
+    end <- which(grepl("^(---|\\.\\.\\.)\\s*$", lines))
+    end <- end[end > 1L][1]
+    if (!is.na(end)) {
+      out[1:end] <- TRUE
+      i <- end + 1L
+    }
+  }
+
+  fence <- NULL
+  while (i <= length(lines)) {
+    line <- lines[i]
+    if (is.null(fence)) {
+      m <- regmatches(line, regexec("^ {0,3}(`{3,}|~{3,})", line))[[1]]
+      if (length(m)) {
+        fence <- m[2]
+        out[i] <- TRUE
+      }
+    } else {
+      out[i] <- TRUE
+      ch <- substr(fence, 1, 1)
+      close_re <- paste0("^ {0,3}", if (ch == "`") "`" else "~", "{", nchar(fence), ",}\\s*$")
+      if (grepl(close_re, line)) {
+        fence <- NULL
+      }
+    }
+    i <- i + 1L
+  }
+
+  out
+}
+
+#' Flag Markdown ATX heading lines outside code and YAML (internal)
+#'
+#' @param lines Character vector, one element per line.
+#' @return Logical vector the same length as `lines`.
+#' @keywords internal
+#' @noRd
+.is_heading_line <- function(lines) {
+  grepl("^#{1,6}([ \t]|$)", lines) & !.code_or_yaml_lines(lines)
 }
 
 #' This allows mocking for testthat

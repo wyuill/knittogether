@@ -30,14 +30,14 @@ test_that(".extract_placeholder supports custom prefix", {
 # Clean
 
 test_that("clean errors if file does not exist", {
-	expect_error(clean("no_such_file.md"))
+	expect_error(clean_markdown("no_such_file.md"))
 })
 
 test_that("clean returns invisible cleaned text", {
 	tmp <- withr::local_tempfile(fileext = ".md")
 	writeLines("Hello", tmp)
 
-	res <- expect_invisible(clean(tmp))
+	res <- expect_invisible(clean_markdown(tmp))
 	expect_type(res, "character")
 })
 
@@ -46,7 +46,7 @@ test_that("clean_citations removes escaped citations", {
 	tmp <- withr::local_tempfile(fileext = ".md")
 	writeLines(c("Solo: \\[@ref1\\]", "In text: more\\[@ref1\\] text"), tmp)
 
-	out <- clean(tmp, clean_citations = TRUE)
+	out <- clean_markdown(tmp, clean_citations = TRUE)
 	expect_equal(out[1], "Solo: [@ref1]")
 	expect_equal(out[2], "In text: more[@ref1] text")
 })
@@ -56,7 +56,7 @@ test_that("clean_citations leaves text unchanged when disabled", {
 	original <- "\\\\[@abc]"
 	writeLines(original, tmp)
 
-	out <- clean(tmp, clean_citations = FALSE)
+	out <- clean_markdown(tmp, clean_citations = FALSE)
 	expect_equal(out, original)
 })
 
@@ -67,7 +67,7 @@ test_that("pptx_section_offset bumps headings for normal slides", {
 
 	writeLines(c("# Slide Title", "", "Some body text"), tmp)
 
-	out <- clean(tmp, pptx_section_offset = TRUE)
+	out <- clean_markdown(tmp, pptx_section_offset = TRUE)
 	expect_equal(out[1], "## Slide Title")
 })
 
@@ -77,7 +77,7 @@ test_that("pptx_section_offset leaves section-only slides untouched", {
 
 	writeLines(c("# Section Title", "", ""), tmp)
 
-	out <- clean(tmp, pptx_section_offset = TRUE)
+	out <- clean_markdown(tmp, pptx_section_offset = TRUE)
 	expect_equal(out[1], "# Section Title")
 })
 
@@ -85,7 +85,7 @@ test_that("`heading_offset = sections` can be disabled", {
 	tmp <- withr::local_tempfile(fileext = ".md")
 	writeLines(c("# Title", "Text"), tmp)
 
-	out <- clean(tmp, pptx_section_offset = FALSE)
+	out <- clean_markdown(tmp, pptx_section_offset = FALSE)
 	expect_equal(out[1], "# Title")
 })
 
@@ -95,7 +95,7 @@ test_that("`heading_offset = all` increments headings by one", {
 
 	writeLines(c("# H1", "## H2", "No heading", "###### H6"), tmp)
 
-	out <- clean(tmp, heading_offset = TRUE)
+	out <- clean_markdown(tmp, heading_offset = TRUE)
 
 	expect_equal(out[1], "## H1") # 1 → 2
 	expect_equal(out[2], "### H2") # 2 → 3
@@ -107,7 +107,7 @@ test_that("heading_offset can be disabled", {
 	tmp <- withr::local_tempfile(fileext = ".md")
 	writeLines("# Title", tmp)
 
-	out <- clean(tmp, heading_offset = FALSE)
+	out <- clean_markdown(tmp, heading_offset = FALSE)
 	expect_equal(out[1], "# Title")
 })
 
@@ -115,11 +115,11 @@ test_that("clear_draft keeps non-draft content unchanged", {
 	tmp <- tempfile(fileext = ".md")
 
 	writeLines(
-		c("Line 1", "--DRAFT_CONTENT--", "placeholder_content_x", "Generated stuff", "--END_DRAFT_CONTENT--", "Line 2"),
+		c("Line 1", "DRAFT_CONTENT_START", "placeholder_content_x", "Generated stuff", "DRAFT_CONTENT_END", "Line 2"),
 		tmp
 	)
 
-	clean(tmp, clear_draft = TRUE)
+	clean_markdown(tmp, clear_draft = TRUE)
 
 	result <- readLines(tmp)
 
@@ -131,7 +131,7 @@ test_that("clear_draft works with custom draft markers", {
 
 	writeLines(c("AAA", "<<<START>>>", "placeholder_content_custom", "Extra content", "<<<END>>>", "BBB"), tmp)
 
-	clean(tmp, clear_draft = TRUE, draft_mode_prefix = "<<<START>>>", draft_mode_suffix = "<<<END>>>")
+	clean_markdown(tmp, clear_draft = TRUE, draft_mode_prefix = "<<<START>>>", draft_mode_suffix = "<<<END>>>")
 
 	result <- readLines(tmp)
 
@@ -144,21 +144,21 @@ test_that("clear_draft handles multiple draft blocks independently", {
 	writeLines(
 		c(
 			"Top",
-			"--DRAFT_CONTENT--",
+			"DRAFT_CONTENT_START",
 			"placeholder_content_a",
 			"A1",
-			"--END_DRAFT_CONTENT--",
+			"DRAFT_CONTENT_END",
 			"Middle",
-			"--DRAFT_CONTENT--",
+			"DRAFT_CONTENT_START",
 			"placeholder_content_b",
 			"B1",
-			"--END_DRAFT_CONTENT--",
+			"DRAFT_CONTENT_END",
 			"Bottom"
 		),
 		tmp
 	)
 
-	clean(tmp, clear_draft = TRUE)
+	clean_markdown(tmp, clear_draft = TRUE)
 
 	result <- readLines(tmp)
 
@@ -172,7 +172,7 @@ test_that("clear_draft does nothing if no draft markers are present", {
 
 	writeLines(original, tmp)
 
-	clean(tmp, clear_draft = TRUE)
+	clean_markdown(tmp, clear_draft = TRUE)
 
 	result <- readLines(tmp)
 
@@ -184,11 +184,11 @@ test_that("clear_draft removes content but keeps placeholder (default markers, o
 	tmp <- tempfile(fileext = ".md")
 
 	writeLines(
-		c("Before text", "--DRAFT_CONTENT--", "placeholder_content_total", "42", "--END_DRAFT_CONTENT--", "After text"),
+		c("Before text", "DRAFT_CONTENT_START", "placeholder_content_total", "42", "DRAFT_CONTENT_END", "After text"),
 		tmp
 	)
 
-	clean(tmp, clear_draft = TRUE)
+	clean_markdown(tmp, clear_draft = TRUE)
 
 	result <- readLines(tmp)
 
@@ -200,19 +200,19 @@ test_that("clear_draft handles inline prefix/suffix with punctuation and preserv
 
 	writeLines(
 		c(
-			"Some more text with scalar added --DRAFT_CONTENT--",
+			"Some more text with scalar added DRAFT_CONTENT_START",
 			"placeholder_content_total",
 			"42",
-			"--END_DRAFT_CONTENT--. And another inline but this time as an expression --DRAFT_CONTENT--",
+			"DRAFT_CONTENT_END. And another inline but this time as an expression DRAFT_CONTENT_START",
 			"placeholder_content_dfmax",
 			"`r { max(df$c1) }`",
-			"--END_DRAFT_CONTENT--.",
+			"DRAFT_CONTENT_END.",
 			"Tail"
 		),
 		tmp
 	)
 
-	clean(tmp, clear_draft = TRUE)
+	clean_markdown(tmp, clear_draft = TRUE)
 
 	result <- readLines(tmp)
 
@@ -230,7 +230,7 @@ test_that("clear_draft works with custom draft markers (inline-safe)", {
 
 	writeLines(c("AAA <<<START>>>", "placeholder_content_custom", "Extra content", "<<<END>>> BBB"), tmp)
 
-	clean(tmp, clear_draft = TRUE, draft_mode_prefix = "<<<START>>>", draft_mode_suffix = "<<<END>>>")
+	clean_markdown(tmp, clear_draft = TRUE, draft_mode_prefix = "<<<START>>>", draft_mode_suffix = "<<<END>>>")
 
 	result <- readLines(tmp)
 
@@ -242,11 +242,11 @@ test_that("clear_draft supports custom placeholder_prefix", {
 	tmp <- tempfile(fileext = ".md")
 
 	writeLines(
-		c("Top", "--DRAFT_CONTENT--", "placeholder_plot", "99", "--END_DRAFT_CONTENT--", "Bottom"),
+		c("Top", "DRAFT_CONTENT_START", "placeholder_plot", "99", "DRAFT_CONTENT_END", "Bottom"),
 		tmp
 	)
 
-	clean(tmp, clear_draft = TRUE, placeholder_prefix = "placeholder")
+	clean_markdown(tmp, clear_draft = TRUE, placeholder_prefix = "placeholder")
 
 	result <- readLines(tmp)
 
@@ -259,20 +259,20 @@ test_that("clear_draft removes chunk bodies and keeps only the placeholder", {
 	writeLines(
 		c(
 			"Intro",
-			"--DRAFT_CONTENT--",
+			"DRAFT_CONTENT_START",
 			"placeholder_content_mtcarsplot",
 			"```{r mtcarsplot, echo=FALSE, warning=FALSE, message=FALSE, fig.width=7}",
 			"{",
 			"  plot(mtcars$wt, mtcars$mpg)",
 			"}",
 			"```",
-			"--END_DRAFT_CONTENT--",
+			"DRAFT_CONTENT_END",
 			"Outro"
 		),
 		tmp
 	)
 
-	clean(tmp, clear_draft = TRUE)
+	clean_markdown(tmp, clear_draft = TRUE)
 
 	result <- readLines(tmp)
 
@@ -299,7 +299,7 @@ test_that("placeholder_markers removes brackets and custom-style blocks", {
 	writeLines(input, tf)
 
 	# Run cleaner
-	clean(markdown_file = tf, clear_placeholder_styling = TRUE)
+	clean_markdown(markdown_file = tf, clear_placeholder_styling = TRUE)
 
 	# Read back output
 	result <- readLines(tf, warn = FALSE)
@@ -321,11 +321,55 @@ test_that("placeholder_markers supports custom placeholder_prefix", {
 	tf <- tempfile(fileext = ".md")
 	writeLines(input, tf)
 
-	clean(markdown_file = tf, clear_placeholder_styling = TRUE, placeholder_prefix = "placeholder")
+	clean_markdown(markdown_file = tf, clear_placeholder_styling = TRUE, placeholder_prefix = "placeholder")
 
 	result <- readLines(tf, warn = FALSE)
 
 	expect_identical(result, expected)
+})
+
+test_that("clear_placeholder_styling leaves whitespace alone", {
+	input <- c(
+		"- item",
+		"    - nested item",
+		"Line with a hard break  ",
+		"```{r}",
+		"x  <-   1",
+		"```",
+		"+-----+-----+",
+		"| a   | b   |",
+		"+-----+-----+",
+		"Text [placeholder_content_a]{custom-style=\"PlaceholderMarker\"} more"
+	)
+	tf <- tempfile(fileext = ".md")
+	writeLines(input, tf)
+
+	result <- clean_markdown(tf, clear_placeholder_styling = TRUE)
+
+	expect_identical(result[1:9], input[1:9])
+	expect_identical(result[10], "Text placeholder_content_a more")
+})
+
+test_that("clear_placeholder_styling keeps custom styles that are not on placeholders", {
+	input <- c(
+		"[Note to readers]{custom-style=\"Callout\"}",
+		"See [placeholder_content_a]{custom-style=\"PlaceholderMarker\"} and [Key point]{custom-style=\"Emphasis\"}."
+	)
+	tf <- tempfile(fileext = ".md")
+	writeLines(input, tf)
+
+	result <- clean_markdown(tf, clear_placeholder_styling = TRUE)
+
+	expect_identical(result[1], input[1])
+	expect_identical(result[2], "See placeholder_content_a and [Key point]{custom-style=\"Emphasis\"}.")
+})
+
+test_that("clear_placeholder_styling does not unwrap a link whose text is a placeholder", {
+	input <- "[placeholder_content_a](https://example.com)"
+	tf <- tempfile(fileext = ".md")
+	writeLines(input, tf)
+
+	expect_identical(clean_markdown(tf, clear_placeholder_styling = TRUE), input)
 })
 
 # Combined behaviour ----
@@ -340,15 +384,15 @@ test_that("all cleaning steps interact predictably including clear_draft and pla
 			"# A normal heading",
 			"Some text\\[@cite\\].",
 			"",
-			"Inline example --DRAFT_CONTENT--",
+			"Inline example DRAFT_CONTENT_START",
 			"[placeholder_content_value]{custom-style=\"PlaceholderMarker\"}",
 			"99",
-			"--END_DRAFT_CONTENT-- and more text."
+			"DRAFT_CONTENT_END and more text."
 		),
 		tmp
 	)
 
-	out <- clean(
+	out <- clean_markdown(
 		tmp,
 		clean_citations = TRUE,
 		heading_offset = TRUE,
@@ -368,4 +412,82 @@ test_that("all cleaning steps interact predictably including clear_draft and pla
 
 	# Draft block collapsed, placeholder extracted AND marker formatting stripped
 	expect_equal(out[7], "Inline example placeholder_content_value and more text.")
+})
+
+# Headings inside code ----
+test_that("heading_offset does not touch chunk options, code comments or YAML", {
+	input <- c(
+		"---",
+		"# yaml comment",
+		"title: x",
+		"---",
+		"# Heading",
+		"#Not a heading",
+		"```{r}",
+		"#| echo: false",
+		"# an R comment",
+		"```",
+		"~~~",
+		"## also code",
+		"~~~",
+		"###### Six"
+	)
+	tf <- tempfile(fileext = ".md")
+	writeLines(input, tf)
+
+	out <- clean_markdown(tf, heading_offset = TRUE)
+
+	expected <- input
+	expected[5] <- "## Heading"
+	expect_identical(out, expected)
+})
+
+test_that("pptx_section_offset ignores # lines inside code", {
+	input <- c(
+		"# Slide",
+		"Body text",
+		"```{r}",
+		"# comment",
+		"x <- 1",
+		"```"
+	)
+	tf <- tempfile(fileext = ".md")
+	writeLines(input, tf)
+
+	out <- clean_markdown(tf, pptx_section_offset = TRUE)
+
+	expect_identical(out[1], "## Slide")
+	expect_identical(out[4], "# comment")
+})
+
+# Word formatting on placeholders (PHDAT-1198) ----
+test_that("clean() removes superscript and subscript formatting tight around a placeholder", {
+	tf <- tempfile(fileext = ".md")
+	writeLines(c("^placeholder_content_plot^", "H~placeholder_content_sub~O"), tf)
+	out <- clean_markdown(tf, clear_placeholder_styling = TRUE)
+	expect_identical(out, c("placeholder_content_plot", "Hplaceholder_content_subO"))
+})
+
+test_that("clean() removes bold and italic formatting wrapped round a styled placeholder", {
+	tf <- tempfile(fileext = ".md")
+	writeLines(c(
+		'**[placeholder_content_plot]{custom-style="PlaceholderMarker"}**',
+		'*[placeholder_content_tab]{custom-style="PlaceholderMarker"}*'
+	), tf)
+	out <- clean_markdown(tf, clear_placeholder_styling = TRUE)
+	expect_identical(out, c("placeholder_content_plot", "placeholder_content_tab"))
+})
+
+test_that("clean() leaves formatting that is not tight against a placeholder", {
+	tf <- tempfile(fileext = ".md")
+	writeLines(c("Some ^superscript^ text and **bold** words", "x^2^ then placeholder_content_a"), tf)
+	out <- clean_markdown(tf, clear_placeholder_styling = TRUE)
+	expect_identical(out, c("Some ^superscript^ text and **bold** words", "x^2^ then placeholder_content_a"))
+})
+
+test_that("formatting removal only applies when clear_placeholder_styling is TRUE", {
+	tf <- tempfile(fileext = ".md")
+	writeLines("^placeholder_content_plot^", tf)
+	out <- clean_markdown(tf, clear_placeholder_styling = FALSE)
+	expect_identical(out, "^placeholder_content_plot^")
 })

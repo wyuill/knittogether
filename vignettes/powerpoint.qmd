@@ -7,7 +7,7 @@ vignette: >
 format: html
 ---
 
-The workflow itself does not require much adjustment to work with PowerPoint, though `clean(pptx_section_offset = TRUE)` is often useful to adjust header levels when Section Header slides are used. A number of specific helper functions can also help.
+The workflow itself does not require much adjustment to work with PowerPoint, though `clean_markdown(pptx_section_offset = TRUE)` is often useful to adjust header levels when Section Header slides are used. A number of specific helper functions can also help.
 
 Quarto-produced PowerPoint presentations often require different styling and formatting than other output types. knittogether has a set of functions to make these easier to apply, typically with checks to ensure these styles do not apply to HTML outputs. These functions are simplest to use in Quarto-generated content but can be inserted into content imported from markdown if desired.
 

@@ -47,14 +47,19 @@ insert_slide_break <- function(text, limit = 800, break_fun = slide_break, slide
 	}
 
 	# Header breaks
-	header_regex <- "(?m)^(#{1,6})\\s"
-	header_matches <- gregexpr(header_regex, text, perl = TRUE)[[1]]
+	# Headings outside code and YAML, with their character position in `text`
+	lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
+	line_start <- cumsum(c(1L, nchar(lines[-length(lines)]) + 1L))
+	is_hdr <- .is_heading_line(lines)
 
-	if (length(header_matches) > 0 && header_matches[1] != -1) {
-		headers <- regmatches(text, gregexpr(header_regex, text, perl = TRUE))[[1]]
-		header_lvls <- nchar(gsub(" .*", "", headers))
+	if (any(is_hdr)) {
+		header_lvls <- nchar(sub("^(#+).*", "\\1", lines[is_hdr]))
+		header_pos <- line_start[is_hdr]
 
-		header_pos <- header_matches
+		# A header at the very start of the text can't be broken before: doing so would insert an empty segment and
+		# leave the text unchanged, so auto_slide_break() would loop forever.
+		header_lvls <- header_lvls[header_pos > 1]
+		header_pos <- header_pos[header_pos > 1]
 
 		# slide-level headers (natural break)
 		slide_hdrs <- header_pos[header_lvls %in% slide_levels & header_pos <= limit]
@@ -115,7 +120,16 @@ insert_slide_break <- function(text, limit = 800, break_fun = slide_break, slide
 auto_slide_break <- function(text, limit = 800, break_fun = slide_break, slide_levels = c(1, 2)) {
 	BREAK_TOKEN <- paste0("\n\n", break_fun(), "\n\n")
 
+	# Every pass that changes the text adds at least one break before a later character, so there can never be more
+	# passes than characters. Exceeding that means no progress is being made.
+	max_passes <- nchar(text) + 1L
+	passes <- 0L
+
 	repeat {
+		passes <- passes + 1L
+		if (passes > max_passes) {
+			stop("auto_slide_break() could not make progress splitting the text.", call. = FALSE)
+		}
 		# Split into existing segments
 		segments <- strsplit(text, BREAK_TOKEN, fixed = TRUE)[[1]]
 
@@ -334,14 +348,8 @@ add_pptx_backgrounds_to_headers <- function(text, levels = 1, bg, bg_dir, overwr
 	# Process string
 	lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
 
-	# Handle YAML front matter
-	in_yaml <- FALSE
-	yaml_started <- grepl("^---\\s*$", lines[1])
-	if (yaml_started) {
-		in_yaml <- TRUE
-	}
-
-	is_yaml_delim <- function(x) grepl("^---\\s*$|^\\.\\.\\.\\s*$", x)
+	# Skip YAML front matter and fenced code, where `#` lines are not headings
+	skip <- .code_or_yaml_lines(lines)
 
 	header_re <- "^\\s{0,3}(#{1,6})[ \\t]+(.+?)([ \\t]+\\{[^}]*\\})?\\s*$"
 
@@ -354,11 +362,7 @@ add_pptx_backgrounds_to_headers <- function(text, levels = 1, bg, bg_dir, overwr
 	for (i in seq_along(lines)) {
 		line <- lines[i]
 
-		# Skip inside YAML
-		if (in_yaml) {
-			if (i > 1 && is_yaml_delim(line)) {
-				in_yaml <- FALSE
-			}
+		if (skip[i]) {
 			next
 		}
 

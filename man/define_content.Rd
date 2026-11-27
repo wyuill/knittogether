@@ -5,11 +5,11 @@
 \title{Define a content specification for insertion into a document}
 \usage{
 define_content(
-  description,
+  description = NULL,
   placeholder_id,
   output_mode = c("inline", "chunk", "asis"),
   content,
-  content_type,
+  content_type = NULL,
   chunk_options = list()
 )
 }

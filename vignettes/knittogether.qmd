@@ -49,10 +49,10 @@ Suppose your colleague gives you a **Word document** with text and the following
 
 ## 1. Convert Word to markdown
 
-First we `[convert()]` the docx file into a markdown file, extracting the contents and structure as well as images, tables, and citations.
+First we `[convert_markdown()]` the docx file into a markdown file, extracting the contents and structure as well as images, tables, and citations.
 
 ```{r}
-knittogether::convert(
+knittogether::convert_markdown(
   input_file    = "input.docx",
   markdown_file = "report.md",
   media_base_dir = "media"
@@ -61,10 +61,10 @@ knittogether::convert(
 
 ## 2. Clean the markdown
 
-Next we `clean()` the resulting markdown so that it will be processed correctly by Quarto.
+Next we `clean_markdown()` the resulting markdown so that it will be processed correctly by Quarto.
 
 ```{r}
-clean(
+clean_markdown(
   markdown_file   = "report.md",
   heading_offset  = TRUE,
   clean_citations = TRUE
@@ -98,10 +98,10 @@ content_map <- placeholder_map(specs = list(plot, rows))
 
 ## 4. Replace placeholders with real content
 
-Next we `replace()` the placeholders with this content and, optionally, validate the content is correct.
+Next we `replace_placeholders()` the placeholders with this content and, optionally, validate the content is correct.
 
 ```{r}
-replace(
+replace_placeholders(
   markdown_file      = "report.md",
   code_content       = content_map,
   placeholder_prefix = "placeholder_content",
@@ -113,9 +113,9 @@ If desired the markdown string can be passed to `accessibility_scan()` to check 
 
 ## 5. Render the Quarto document
 
-Finally, we can render the resulting file into whatever format we want to output from Quarto. In your .qmd (e.g., report.qmd), include: {{{ \< include report.md \> }}} and then render with `quarto::quarto_render("report.qmd")`. Or, `[replace()]` invisibly returns the contents of the markdown so it can be inserted directly into a Quarto file.
+Finally, we can render the resulting file into whatever format we want to output from Quarto. In your .qmd (e.g., report.qmd), include: {{{ \< include report.md \> }}} and then render with `quarto::quarto_render("report.qmd")`. Or, `[replace_placeholders()]` invisibly returns the contents of the markdown so it can be inserted directly into a Quarto file.
 
-If you don't want to run each step individually you can use `run_workflow()` to run them all at once.
+If you don't want to run each step individually you can use `run_workflow()` to run them all at once. Each step reads the output of the step before it. Pass a folder as `input_file` to use its newest Word file, optionally narrowed with `base_name`. See the Working with versions section of the README for keeping earlier versions.
 
 A fuller, ready-to-run example is provided in `vignette("extended-workflow")`. Other vignettes provide guidance on working with PowerPoint, citations, and setting up Office document styling.
 
@@ -153,12 +153,12 @@ These can be added to the content argument of `[define_content()]` as `content= 
 You may find yourself going back and forth between Quarto and Word/PowerPoint. To make this easier you can use use draft mode to show the output of the code while keeping the placeholders.
 
 ```{r}
-replace(
+replace_placeholders(
   markdown_file    = "report.md",
   code_content     = content_map,
   draft_mode       = TRUE,
-  draft_mode_prefix = "--DRAFT_CONTENT--",
-  draft_mode_suffix = "--END_DRAFT_CONTENT--",
+  draft_mode_prefix = "DRAFT_CONTENT_START",
+  draft_mode_suffix = "DRAFT_CONTENT_END",
   marker_mode      = "hidden"
 )
 ```
