@@ -2,13 +2,27 @@
 % Please edit documentation in R/pptx-formatting.R
 \name{slide_break}
 \alias{slide_break}
-\title{Insert a Slide Break}
+\title{Start a new slide}
 \usage{
 slide_break()
 }
 \value{
-A character string if non-HTML output, otherwise NULL.
+\code{"---"}, or \code{NULL} in HTML output.
 }
 \description{
-Returns a slide break marker ("---") when the output format is not HTML.
+Returns \verb{---}, which starts a new slide, when the document isn't being rendered to HTML. In HTML it returns
+nothing, so the same document can render to both. Use it in inline code, \code{`r slide_break()`}, or as the
+\code{break_fun} of \code{\link[=auto_slide_break]{auto_slide_break()}}.
 }
+\examples{
+slide_break()
+}
+\seealso{
+Other PowerPoint:
+\code{\link[=add_pptx_backgrounds_to_headers]{add_pptx_backgrounds_to_headers()}},
+\code{\link[=auto_slide_break]{auto_slide_break()}},
+\code{\link[=insert_slide_break]{insert_slide_break()}},
+\code{\link[=pptx_col_start]{pptx_col_start()}},
+\code{\link[=pptx_section_slide]{pptx_section_slide()}}
+}
+\concept{PowerPoint}

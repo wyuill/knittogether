@@ -32,7 +32,7 @@ test_that("convert creates a markdown file from docx", {
 
 	make_docx_from_md("Hello **world**", input)
 
-	res <- convert(input_file = input, markdown_file = output, media_base_dir = NULL, pandoc_version = "default")
+	res <- convert_markdown(input_file = input, markdown_file = output, media_base_dir = NULL, pandoc_version = "default")
 
 	expect_true(file.exists(output))
 	expect_null(res$media_dir)
@@ -51,7 +51,7 @@ test_that("media extraction works with a DOCX containing embedded images", {
 
 	make_docx_with_image(input)
 
-	res <- convert(input_file = input, markdown_file = output, media_base_dir = media_base, pandoc_version = "default")
+	res <- convert_markdown(input_file = input, markdown_file = output, media_base_dir = media_base, pandoc_version = "default")
 
 	media_dir <- file.path(media_base, "media")
 
@@ -76,7 +76,7 @@ test_that("media extraction is disabled with NULL", {
 
 	make_docx_from_md("Just text, no media here.", input)
 
-	res <- convert(input_file = input, markdown_file = output, media_base_dir = NULL, pandoc_version = "default")
+	res <- convert_markdown(input_file = input, markdown_file = output, media_base_dir = NULL, pandoc_version = "default")
 
 	expect_true(file.exists(output))
 	expect_null(res$media_dir)
@@ -93,7 +93,7 @@ test_that("pandoc_args are passed safely", {
 
 	make_docx_from_md("Some *emphasis* text.", input)
 
-	res <- convert(input_file = input, markdown_file = output, pandoc_args = "--citeproc", pandoc_version = "default")
+	res <- convert_markdown(input_file = input, markdown_file = output, pandoc_args = "--citeproc", pandoc_version = "default")
 
 	expect_true(file.exists(res$markdown_file))
 })
@@ -107,7 +107,7 @@ test_that("convert errors when input file does not exist", {
 	out <- file.path(tmp, "out.md")
 
 	expect_error(
-		convert(input_file = missing, markdown_file = out),
+		convert_markdown(input_file = missing, markdown_file = out),
 		"File not found"
 	)
 })
@@ -119,7 +119,7 @@ test_that("convert errors for unsupported extension", {
 	writeLines("hello", input)
 
 	expect_error(
-		convert(input_file = input, markdown_file = out),
+		convert_markdown(input_file = input, markdown_file = out),
 		"must be a .docx or .pptx"
 	)
 })
@@ -132,7 +132,7 @@ test_that("function returns invisible named list with expected fields", {
 
 	make_docx_from_md("Ok.", input)
 
-	result <- expect_invisible(convert(
+	result <- expect_invisible(convert_markdown(
 		input_file = input,
 		markdown_file = output,
 		media_base_dir = NULL,
@@ -143,22 +143,4 @@ test_that("function returns invisible named list with expected fields", {
 	expect_named(result, c("markdown_file", "media_dir"))
 	expect_identical(result$markdown_file, output)
 	expect_null(result$media_dir)
-})
-
-test_that("convert warns when pptx conversion uses pandoc below 3.8.3", {
-	tmp <- withr::local_tempdir()
-	input <- file.path(tmp, "slides.pptx")
-	output <- file.path(tmp, "slides.md")
-	writeLines("dummy", input)
-
-	local_mocked_bindings(
-		pandoc_version = function(...) numeric_version("3.7.0"),
-		pandoc_run = function(...) NULL,
-		.package = "pandoc"
-	)
-
-	expect_warning(
-		convert(input_file = input, markdown_file = output, pandoc_version = "default"),
-		"below"
-	)
 })

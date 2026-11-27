@@ -1,7 +1,7 @@
 #' Generate a quality check log for placeholder replacements (developer utility)
 #'
 #' @description
-#' Internal developer-facing utility used by [replace()] to compare current
+#' Internal developer-facing utility used by [replace_placeholders()] to compare current
 #' placeholder code content against the latest logged state (CSV) and record
 #' change metadata. Optionally generates an HTML report (Quarto + reactable)
 #' from the same CSV.
@@ -11,7 +11,7 @@
 #' @param markdown_file
 #'    Path to the markdown file used to extract nearby context for placeholders.
 #' @param placeholder_prefix
-#'    Prefix used for placeholders in the markdown. Defaults to `"placeholder_content"`.
+#'    Text every placeholder starts with, used exactly as given. Defaults to `"placeholder_"`.
 #' @param validation_path
 #'    Directory where outputs are saved (CSV, HTML). Defaults to `"validation"`.
 #' @param log_file
@@ -23,10 +23,11 @@
 #'
 #' @return Invisibly returns the current validation data frame (including change flags).
 #' @keywords internal
+#' @noRd
 generate_quality_check <- function(
 	code_content,
 	markdown_file,
-	placeholder_prefix = "placeholder_content",
+	placeholder_prefix = "placeholder_",
 	validation_path = "validation",
 	log_file = "quality_log.csv",
 	html_file = "validation.html"
@@ -80,7 +81,7 @@ generate_quality_check <- function(
 		content_str <- paste0(s$content_expr, collapse = "")
 
 		# Extract a snippet around the first occurrence of 'placeholder_prefix_id'
-		placeholder_key <- paste0(placeholder_prefix, "_", id)
+		placeholder_key <- paste0(placeholder_prefix, id)
 		pos <- regexpr(placeholder_key, md_text, fixed = TRUE)
 
 		placeholder_snippet <- if (pos[1] > 0) {

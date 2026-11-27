@@ -2,65 +2,72 @@
 % Please edit documentation in R/replace.R
 \name{define_content}
 \alias{define_content}
-\title{Define a content specification for insertion into a document}
+\title{Describe the content for one placeholder}
 \usage{
 define_content(
-  description,
+  description = NULL,
   placeholder_id,
   output_mode = c("inline", "chunk", "asis"),
   content,
-  content_type,
+  content_type = NULL,
   chunk_options = list()
 )
 }
 \arguments{
-\item{description}{An optional label describing the content for ease of validating the content is in the correct place.}
+\item{description}{Optional. A short description of the content, shown in the validation log to help you check the right output
+is in the right place.}
 
-\item{placeholder_id}{A slug identifying the placeholder (e.g., \code{"plot1"}). The full placeholder matched in the Markdown file will be
-\code{paste0(placeholder_prefix, "_", placeholder_id)}.}
+\item{placeholder_id}{The part of the placeholder after the prefix. With the default prefix \code{"placeholder_"}, the ID \code{"plot"} fills
+\code{placeholder_plot}.}
 
-\item{output_mode}{One of:
+\item{output_mode}{How the content goes in:
 \itemize{
-\item \code{"inline"} – insert a knitr inline expression using the R engine \code{`r <expr>`}.
-\item \code{"chunk"}  – insert a fenced code block. Chunk language defaults to R but can be overridden via \code{chunk_options$engine}.
-\item \code{"asis"}   – insert literal text. If \code{content} is a character literal, it is inserted as-is; otherwise the
-expression is deparsed to text and inserted.
+\item \code{"inline"} writes inline R code, \code{`r <content>`}, for a value inside a sentence.
+\item \code{"chunk"} writes a code chunk on its own line, for plots, tables or anything longer. The chunk is R unless
+you set \code{chunk_options$engine}.
+\item \code{"asis"} writes text exactly as given. If \code{content} is a string it's inserted as it is; otherwise the code
+itself is inserted as text, not its result.
 }}
 
-\item{content}{A quoted or unquoted R expression (captured, not executed). For \code{"inline"} and \code{"chunk"}, this expression is
-emitted for knitr/Quarto to evaluate. For when \code{output_mode} is set to \code{"asis"}, \code{content} is inserted directly;
-otherwise, the expression is deparsed to text.}
+\item{content}{The code to insert, for example \code{{ plot(mtcars$wt, mtcars$mpg) }} or \code{nrow(mtcars)}. It can also be passed in
+from a function or with \verb{!!}, for example inside \code{lapply()}.}
 
-\item{content_type}{An optional human-readable type (e.g., \code{"plot"}, \code{"table"}, \code{"qmd"}) used for ease of validation.}
+\item{content_type}{Optional. A label such as \code{"plot"}, \code{"table"} or \code{"qmd"}, shown in the validation log.}
 
-\item{chunk_options}{Named list of chunk options when \code{output_mode = "chunk"}.
+\item{chunk_options}{A named list of chunk options, used when \code{output_mode = "chunk"}. Any knitr option works, such as
+\code{echo = FALSE} or \code{fig.width = 7}. Three more control how the chunk is written:
 \itemize{
-\item \code{engine} (default \code{"r"}) to select language.
-\item \code{as_child = TRUE} to write a child \code{.qmd} and include it with
-\verb{\{\{< include child_<slug>.qmd >\}\}} instead of inlining the chunk.
-\item \code{child_dir} optional subdirectory to store child files relative
-to the parent markdown file.
-\item Any other knitr options, e.g. \code{echo = FALSE}, \code{fig.width = 7}.
+\item \code{engine}: the chunk language. Defaults to \code{"r"}.
+\item \code{as_child}: if \code{TRUE}, write the chunk to its own file, \verb{child_<id>.qmd}, and include that file instead.
+\item \code{child_dir}: the folder for child files, relative to the Markdown file.
 }}
 }
 \value{
-A \code{"content_spec"} object.
+A \code{content_spec} object, to pass to \code{\link[=placeholder_map]{placeholder_map()}}.
 }
 \description{
-\code{define_content()} creates a structured object describing how a piece of content should be inserted into a
-Markdown/Quarto document. The \code{content} is captured as an \strong{unevaluated expression} and later rendered by downstream
-tooling (e.g., knitr/Quarto).
+Says what should replace a placeholder and how it goes in. The code in \code{content} isn't run now: it's written into
+the Markdown by \code{\link[=replace_placeholders]{replace_placeholders()}} and runs when Quarto renders the document. Collect the results with
+\code{\link[=placeholder_map]{placeholder_map()}}.
 }
 \examples{
-\dontrun{
-spec <- define_content(
-  description     = "A plot of mtcars",
-  placeholder_id  = "mtcarsplot",
-  output_mode     = "chunk",
-  content         = { plot(mtcars$wt, mtcars$mpg) },
-  content_type    = "plot",
-  chunk_options   = list(echo = FALSE, fig.width = 7)
+plot <- define_content(
+  placeholder_id = "plot",
+  description = "Car weight against fuel economy",
+  output_mode = "chunk",
+  content = { plot(mtcars$wt, mtcars$mpg) },
+  chunk_options = list(echo = FALSE, fig.width = 7)
 )
-}
+
+total <- define_content(
+  placeholder_id = "total",
+  output_mode = "inline",
+  content = nrow(mtcars)
+)
 
 }
+\seealso{
+Other content:
+\code{\link[=placeholder_map]{placeholder_map()}}
+}
+\concept{content}

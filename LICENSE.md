@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2025 knittogether authors
+Copyright (c) 2025 knittogether authors and London Borough of Camden Public Health Intelligence (Health & Wellbeing)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

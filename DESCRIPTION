@@ -1,15 +1,19 @@
 Package: knittogether
 Title: Reproducible Collaboration Between Quarto and Office
-Version: 0.1.4
+Version: 0.1.5.2
 Authors@R: c(
     person("Will", "Yuill", , "will.yuill@camden.gov.uk", role = c("cre", "aut"),
            comment = c(ORCID = "0009-0003-6270-4273")),
-    person("Ben", "Kimpton", , "ben.kimpton@camden.gov.uk", role = "ctb")
+    person("Ben", "Kimpton", , "ben.kimpton@camden.gov.uk", role = "ctb"),
+    person(given = "London Borough of Camden Public Health Intelligence (Health & Wellbeing)",
+           email = "publichealth.intel@camden.gov.uk", role = "cph")
   )
 Description: An R package designed to enable reproducible collaboration between data professionals and non-data colleagues, producing high-quality Quarto-based outputs without the usual friction.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.4.0)
 Imports: 
     cli,
     dplyr,
@@ -18,6 +22,7 @@ Imports:
     pandoc,
     rlang,
     stringi,
+    tools,
     utils
 Suggests: 
     htmltools,
@@ -30,5 +35,5 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: quarto, knitr
 SystemRequirements: Pandoc (>= 3.8.3) is required to read in Microsoft PowerPoint. Functions involving the import and/or export of citations require Zotero (https://www.zotero.org/download) to be installed and running and the BetterBibTex addin (https://github.com/retorquere/zotero-better-bibtex/releases) is required. To export live citations to .docx format, a lua filter (https://retorque.re/zotero-better-bibtex/exporting/zotero.lua) is required and must be specified in the YAML of the .qmd.
-URL: https://sturdy-giggle-wwjo5pk.pages.github.io/
-Config/roxygen2/version: 8.0.0
+URL: https://wyuill.github.io/knittogether/
+Config/roxygen2/version: 8.1.0

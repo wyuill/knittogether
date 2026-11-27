@@ -2,25 +2,39 @@
 % Please edit documentation in R/pptx-formatting.R
 \name{add_pptx_backgrounds_to_headers}
 \alias{add_pptx_backgrounds_to_headers}
-\title{Add a Background Image to All Headers of Selected Levels in a String}
+\title{Add a background image to headings in Markdown}
 \usage{
 add_pptx_backgrounds_to_headers(text, levels = 1, bg, bg_dir, overwrite = TRUE)
 }
 \arguments{
-\item{text}{Markdown/Quarto content as a single string.}
+\item{text}{A single string of Markdown.}
 
-\item{levels}{Integer vector of header levels to target.}
+\item{levels}{The heading levels to change. Defaults to 1.}
 
-\item{bg}{The name of the background image file (without extension e.g., \code{"blue"} rather than \code{"blue.png"}).}
+\item{bg}{The image's file name without the extension, for example \code{"blue"} for \code{blue.png}.}
 
-\item{bg_dir}{Directory where background files live.}
+\item{bg_dir}{The folder that holds the background images.}
 
-\item{overwrite}{Replace an existing \code{background-image} attribute?}
+\item{overwrite}{Logical. If \code{TRUE} (the default), replace a background a heading already has.}
 }
 \value{
-Modified text string with updated headers.
+\code{text}, with the background added to those headings.
 }
 \description{
-Scans a Markdown/Quarto text string, finds headers, and inserts or replaces a \code{background-image} attribute on all
-headers whose level is in \code{levels}.
+Adds a background image to every heading of the given levels in \code{text}, for example all section slides in
+converted Markdown. Headings inside code blocks are left alone.
 }
+\examples{
+\dontrun{
+add_pptx_backgrounds_to_headers(text, levels = 1, bg = "blue", bg_dir = "backgrounds")
+}
+}
+\seealso{
+Other PowerPoint:
+\code{\link[=auto_slide_break]{auto_slide_break()}},
+\code{\link[=insert_slide_break]{insert_slide_break()}},
+\code{\link[=pptx_col_start]{pptx_col_start()}},
+\code{\link[=pptx_section_slide]{pptx_section_slide()}},
+\code{\link[=slide_break]{slide_break()}}
+}
+\concept{PowerPoint}

@@ -2,71 +2,87 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/wyuill/knittogether/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/wyuill/knittogether/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/wyuill/knittogether/graph/badge.svg)](https://app.codecov.io/gh/wyuill/knittogether)
+[![test coverage](https://github.com/LBCamden/knittogether/blob/badges/.badges/main/coverage.svg)](https://github.com/LBCamden/knittogether/actions/workflows/test-coverage.yaml) [![R-CMD-check](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
-## Overview
+knittogether lets you write a report with colleagues who work in Word or PowerPoint, while you keep the numbers, charts and tables in R. They keep writing in Office. You keep your analysis reproducible. Nobody copies and pastes.
 
-knittogether is an R package for reproducible collaboration between R users and non-R users. It helps teams produce high-quality Quarto outputs while reducing the friction of moving between Office and Quarto.
+## Why
 
--   Import .docx / .pptx into markdown
--   Replace placeholders with R-generated content
--   Render back to Word, PowerPoint, HTML, etc.
--   Support round‑trip editing when working with non‑R colleagues iteratively
+Most reports need two kinds of work: someone who knows the subject writes the words, and someone else produces the analysis. A lot of time goes on the hand-over. Charts get pasted into Word and reformatted, slide breaks get fixed, citations get redone. Then the data changes, or someone rewrites a paragraph, and it all starts again.
 
-### Motivation
-
-Working with non-R users often involves tedious manual steps such as copy-pasting text, reformatting images, adjusting slide breaks, redoing citations, and then starting again when someone changes something. Yet their contributions are often essential for creating meaningful reports and presentations. knittogether streamlines this process by allowing you to seamlessly combine content from Quarto, Microsoft Word, and Microsoft PowerPoint, including:
-
--   Text sections
--   Images and tables
--   Citations and footnotes
--   Slide breaks and sections
-
-The result is a single, reproducible workflow that outputs to any Quarto-supported format (HTML, PDF, Word, PowerPoint, etc.), reducing errors and saving time for R users whilst allowing non-R users to contribute without technical barriers.
+With knittogether, the writer types a placeholder such as `placeholder_plot` where a chart should go. You convert the Word file to Markdown, fill each placeholder from R, and render the result with Quarto to Word, PowerPoint, HTML or PDF. The writer can keep editing in Word, and you can bring their changes back in without losing the R output. Text, images, tables, citations, footnotes and slide breaks all survive the trip.
 
 ## Installation
 
-```         
+```r
 # install.packages("pak")
-pak::pak("LBCamden/knittogether")
+pak::pak("wyuill/knittogether")
 ```
 
-As noted in the DESCRIPTION, if functions involving the import and/or export of citations are used then [Zotero](https://www.zotero.org/download) and [BetterBibTeX](https://github.com/retorquere/zotero-better-bibtex/releases) are required. To export live citations to .docx format, a [Lua filter](https://retorque.re/zotero-better-bibtex/exporting/zotero.lua) is required and must be specified in the YAML of the .qmd.
+Reading PowerPoint files needs Pandoc 3.8.3 or later. Recent versions of RStudio, Positron and Quarto include one, and knittogether will find it. For citations you also need [Zotero](https://www.zotero.org/download) with the [Better BibTeX](https://retorque.re/zotero-better-bibtex/) add-on. `vignette("citations")` explains how to set this up.
 
-## Usage
+## How it works
 
-knittogether follows a standard workflow convert→clean→replace.
+```mermaid
+flowchart LR
+  A["Writer adds placeholders<br/>in the Word draft"] --> B["Coder: convert, clean,<br/>replace_placeholders()"]
+  B --> C["Writer edits the draft<br/>in Word, around the R output"]
+  C --> D["Coder: convert, clean with<br/>clear_draft, replace again"]
+  D --> C
+  D --> E["Final render with<br/>draft_mode = FALSE"]
+```
 
-```         
+1. The writer types placeholders into the Word draft wherever R output should go.
+2. You convert the draft to Markdown, tidy it up and fill in the placeholders.
+3. The writer edits the draft in Word, writing around your output.
+4. You bring their edits back in and refresh the R output. Steps 3 and 4 repeat as often as you need.
+5. When the words are final, you render the finished report.
+
+Either of you can start. You can also begin from a Quarto document and send it to Word for the first round of writing.
+
+## Example
+
+Say the writer's draft contains `placeholder_total` and `placeholder_plot`:
+
+```r
 library(knittogether)
 
-# example.docx is a Word document containing placeholders indicating what and where code content should be added (e.g. `placeholder_content_plot`). It is converted into a markdown file.
-convert(input_file = "example.docx", markdown_file = "example.md")
+convert_markdown("draft.docx", markdown_file = "draft.md")
+clean_markdown("draft.md", placeholder_prefix = "placeholder_")
 
-# The markdown is cleaned to ensure it works with Quarto
-clean(markdown_file = "example.md")
-
-# Code content is created and mapped onto the placeholders
+total <- define_content(
+  placeholder_id = "total",
+  output_mode = "inline",
+  content = { nrow(mtcars) }
+)
 plot <- define_content(
-  description = "A plot",
   placeholder_id = "plot",
-  output_mode = "chunk", 
-  content = { plot(1, 1) },
-  content_type = "plot",
-  chunk_options  = list(echo = FALSE))
-  
-map <- placeholder_map(specs = list(plot))
+  output_mode = "chunk",
+  content = { plot(mtcars$wt, mtcars$mpg) },
+  chunk_options = list(echo = FALSE)
+)
 
-# The placeholders in the markdown are switched for the code content. The output is ready to use within a Quarto file and rendered to any format
-replace(markdown_file = "example.md",
-  placeholder_prefix = "placeholder_content",
-  code_content = map)
+replace_placeholders(
+  "draft.md",
+  placeholder_prefix = "placeholder_",
+  code_content = placeholder_map(specs = list(total, plot))
+)
 ```
+
+`draft.md` now has inline R code where `placeholder_total` was and an R chunk where `placeholder_plot` was. Include it in a Quarto document and render it to any format.
+
+`vignette("knittogether")` goes through this step by step, including how to bring the writer's edits back in.
+
+## Learn more
+
+- [Getting started](https://wyuill.github.io/knittogether/articles/knittogether.html): the workflow step by step, including working back and forth with Word.
+- [Extended workflow](https://wyuill.github.io/knittogether/articles/extended-workflow.html): a complete example you can copy and run.
+- [Office styling and layout](https://wyuill.github.io/knittogether/articles/office-styling.html): setting up Word files so they convert cleanly.
+- [Working with PowerPoint](https://wyuill.github.io/knittogether/articles/powerpoint.html): slide layouts, backgrounds, columns and slide breaks.
+- [Using references](https://wyuill.github.io/knittogether/articles/citations.html): keeping Zotero citations working in both directions.
 
 ## Getting help
 
--   Browse the function documentation (e.g. `?knittogether::clean`) and vignettes.
-
--   Please open an issue on GitHub or [get in touch](https://jsna.camden.gov.uk/about/#get-in-touch).
+Every function has a help page, for example `?clean_markdown`. If something doesn't work, [open an issue](https://github.com/LBCamden/knittogether/issues) or [get in touch](https://jsna.camden.gov.uk/about/#get-in-touch).

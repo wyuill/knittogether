@@ -1,68 +1,73 @@
-#' Clean Pandoc‑generated Markdown for use in Quarto (.qmd)
+#' Tidy converted Markdown for Quarto
 #'
 #' @description
-#' Post‑processes Markdown so that it’s suitable for inclusion in Quarto (`.qmd`) documents. Optionally:
-#' * fixes citation escaping,
-#' * adjusts PowerPoint‑derived heading levels,
-#' * globally offsets headings,
-#' * clears draft blocks written by [replace()], keeping only the placeholder,
-#' * removes styling from placeholder markers written by [replace()].
+#' Fixes things that Word and PowerPoint leave behind after [convert_markdown()], so the Markdown works in Quarto.
+#' Each fix is optional:
 #'
+#' * removes stray escaping from citations,
+#' * moves headings down a level, for all headings or for PowerPoint slides under a section,
+#' * turns draft blocks written by [replace_placeholders()] back into their placeholders, ready to fill again,
+#' * removes Word styling and formatting from placeholders.
+#'
+#' @inheritParams replace_placeholders
 #' @param markdown_file
-#'    Path to the Markdown file to clean (overwritten in place).
+#'    Path to the Markdown file to clean.
 #' @param clean_citations
-#'    Logical; if `TRUE`, removes stray escaping in citations, for example
-#'    `\\[@key\\]` becomes `[@key]`. Defaults to `FALSE`.
+#'    Logical. If `TRUE`, remove the backslashes Pandoc adds to citations, so `\[@key\]` becomes `[@key]`. Defaults
+#'    to `FALSE`.
 #' @param pptx_section_offset
-#'    Logical; if `TRUE`, headings that have body text before the next heading are incremented by one level (max 6).
-#'    Defaults to `FALSE`.
+#'    Logical. If `TRUE`, move each heading that has body text under it down one level (to a maximum of 6). For
+#'    slides, this keeps Section Header slides at the top level and puts the slides beneath them. Defaults to
+#'    `FALSE`.
 #' @param heading_offset
-#'    Logical; if `TRUE`, increments all headings by one level (max 6). This applies after `pptx_section_offset`.
-#'     Defaults to `FALSE`.
+#'    Logical. If `TRUE`, move every heading down one level (to a maximum of 6), so a Word "Heading 1" doesn't
+#'    become the page title in HTML. Applied after `pptx_section_offset`. Defaults to `FALSE`.
 #' @param clear_draft
-#'    Logical; if `TRUE`, remove content between draft markers specified in `draft_mode_prefix` and `draft_mode_suffix`
-#'    while retaining the placeholder. Defaults to `FALSE`.
-#' @param draft_mode_prefix
-#'    Start marker (plain string). Default: `"--DRAFT_CONTENT--"`.
-#' @param draft_mode_suffix
-#'    End marker (plain string). Default: `"--END_DRAFT_CONTENT--"`.
+#'    Logical. If `TRUE`, replace each draft block with the placeholder it was filled from, ready for
+#'    [replace_placeholders()] to fill again. `placeholder_prefix` must match the one used to fill the draft:
+#'    otherwise no placeholder is found and the draft content is removed with nothing to refill. Defaults to
+#'    `FALSE`.
 #' @param clear_placeholder_styling
-#'    Logical; if `TRUE`, removes styling tags applied to placeholder markers.
-#'    For example, `"[placeholder_content_test]{custom-style=\"PlaceholderMarker\"}"`
-#'    is cleaned to `"placeholder_content_test"`. Defaults to `TRUE`.
-#'
-#' @param placeholder_prefix
-#'    Prefix used to identify placeholder tokens (e.g., `"placeholder_content"` matches
-#'    `"placeholder_content_my_id"`). Defaults to `"placeholder_content"`.
+#'    Logical. If `TRUE` (the default), remove the Word style and any bold, italic, superscript or subscript from
+#'    placeholders, so `[placeholder_total]{custom-style="PlaceholderMarker"}` becomes `placeholder_total`. Only
+#'    placeholders are changed.
+#' @param output_file
+#'    Path to write the result to, leaving `markdown_file` unchanged. Defaults to `NULL`, which overwrites
+#'    `markdown_file`.
 #'
 #' @examples
 #' \dontrun{
-#'  # Clean a Markdown file with all options enabled
-#'  clean(
-#'    markdown_file = "markdown_output.md",
-#'    clean_citations = TRUE,
-#'    pptx_section_offset = TRUE,
-#'    heading_offset = TRUE,
-#'    clear_draft = TRUE,
-#'    draft_mode_prefix = "--DRAFT_CONTENT--",
-#'    draft_mode_suffix = "--END_DRAFT_CONTENT--",
-#'    clear_placeholder_styling = TRUE
-#'  )
+#' # After converting a Word document for the first time
+#' clean_markdown(
+#'   "draft.md",
+#'   placeholder_prefix = "placeholder_",
+#'   heading_offset = TRUE,
+#'   clean_citations = TRUE
+#' )
+#'
+#' # After the writer has edited a filled draft
+#' clean_markdown(
+#'   "draft.md",
+#'   placeholder_prefix = "placeholder_",
+#'   clear_draft = TRUE
+#' )
 #' }
 #'
-#' @return Invisibly returns the cleaned lines written to the file.
-#'
+#' @return The cleaned lines, invisibly.
+#' @family workflow
 #' @export
-clean <- function(
+clean_markdown <- function(
 	markdown_file = "markdown_output.md",
 	clean_citations = FALSE,
 	pptx_section_offset = FALSE,
 	heading_offset = FALSE,
 	clear_draft = FALSE,
-	draft_mode_prefix = "--DRAFT_CONTENT--",
-	draft_mode_suffix = "--END_DRAFT_CONTENT--",
+	draft_mode_prefix = "DRAFT_CONTENT_START",
+	draft_mode_suffix = "DRAFT_CONTENT_END",
 	clear_placeholder_styling = TRUE,
-	placeholder_prefix = "placeholder_content"
+	placeholder_prefix = "placeholder_",
+	output_file = NULL,
+	overwrite = TRUE
 ) {
 	if (!file.exists(markdown_file)) {
 		stop("File not found: ", markdown_file, call. = FALSE)
@@ -82,17 +87,30 @@ clean <- function(
 
 	# Placeholder styling
 	if (isTRUE(clear_placeholder_styling)) {
-		# Remove '[' and ']' only when the content is a placeholder token
-		placeholder_pattern <- paste0(
-			"\\[(\\s*",
-			gsub("([.|()\\^{}+$*?\\[\\]\\\\])", "\\\\\\1", placeholder_prefix),
-			"_[A-Za-z0-9_]+\\s*)\\]"
-		)
-		text <- gsub(placeholder_pattern, "\\1", text, perl = TRUE)
-		# Remove trailing {custom-style="..."} anywhere
-		text <- gsub("\\{\\s*custom-style\\s*=\\s*\"[^\"]+\"\\s*\\}", "", text, perl = TRUE)
-		# Normalise spaces within lines
-		text <- trimws(gsub("\\s+", " ", text, perl = TRUE))
+		# Only touch spans whose whole content is a placeholder token: `[token]{custom-style="..."}` and bare
+		# `[token]` become `token`. Other styled spans, and whitespace elsewhere (list indents, code, tables, hard
+		# line breaks), are left alone.
+		token <- paste0(gsub("([.|()\\^{}+$*?\\[\\]\\\\])", "\\\\\\1", placeholder_prefix), "[A-Za-z0-9_]+")
+		# Word formatting (superscript ^, subscript ~, bold **, italic *) applied to a placeholder wraps it in the
+		# output, e.g. ^placeholder_content_x^ or **[placeholder_content_x]{...}**. Remove formatting that sits tight
+		# against the token so it isn't applied to the code output.
+		formatting <- "[\\^~*]+"
+		# The example template brackets placeholders with U+27E6 / U+27E7 (see inst/extdata), and the formatting can
+		# sit outside or inside those brackets, so both are allowed here.
+		open_b <- "\u27E6?"
+		close_b <- "\u27E7?"
+		wrapped_bare <- paste0("(?<![\\^~*])(", formatting, ")", open_b, "(", token, ")", close_b, "\\1(?![\\^~*])")
+		wrapped_span <- paste0("(?<![\\^~*])(", formatting, ")(\\[\\s*", token, "\\s*\\](?:\\{[^}]*\\})?)\\1(?![\\^~*])")
+		text <- gsub(wrapped_bare, "\\2", text, perl = TRUE)
+		text <- gsub(wrapped_span, "\\2", text, perl = TRUE)
+		# Bracket characters the template puts around a placeholder are authoring aids, not content
+		text <- gsub(paste0("\u27E6\\s*(", token, ")\\s*\u27E7?"), "\\1", text, perl = TRUE)
+		text <- gsub(paste0("(", token, ")\\s*\u27E7"), "\\1", text, perl = TRUE)
+
+		styled_pattern <- paste0("\\[\\s*(", token, ")\\s*\\]\\{\\s*custom-style\\s*=\\s*\"[^\"]+\"\\s*\\}")
+		bare_pattern <- paste0("\\[\\s*(", token, ")\\s*\\](?![({\\[])")
+		text <- gsub(styled_pattern, "\\1", text, perl = TRUE)
+		text <- gsub(bare_pattern, "\\1", text, perl = TRUE)
 	}
 
 	# Citations
@@ -104,7 +122,7 @@ clean <- function(
 
 	# PowerPoint section headers
 	if (isTRUE(pptx_section_offset)) {
-		is_heading <- grepl("^#{1,6}\\s", text)
+		is_heading <- .is_heading_line(text)
 
 		for (k in seq_along(text)) {
 			if (!is_heading[k]) {
@@ -128,30 +146,15 @@ clean <- function(
 
 	# Heading offset
 	if (isTRUE(heading_offset)) {
-		pattern <- "(?m)^(#+)(\\s*)"
-		locs <- gregexpr(pattern, text, perl = TRUE)
-		matches <- regmatches(text, locs)
-
-		matches_new <- lapply(matches, function(block) {
-			vapply(
-				block,
-				function(h) {
-					m2 <- regexec(pattern, h, perl = TRUE)
-					parts <- regmatches(h, m2)[[1]]
-					hashes <- parts[2]
-					spaces <- parts[3]
-					n <- nchar(hashes)
-					new_hashes <- if (n < 6) paste0(hashes, "#") else hashes
-					paste0(new_hashes, spaces)
-				},
-				character(1)
-			)
-		})
-
-		regmatches(text, locs) <- matches_new
+		# Only real headings (a space after the hashes, outside code and YAML), so `#| echo: false` and R comments
+		# are never changed. Level-6 headings stay at 6.
+		bump <- .is_heading_line(text) & !grepl("^#{6}", text)
+		text[bump] <- paste0("#", text[bump])
 	}
 
-	writeLines(text, markdown_file)
+	destination <- if (is.null(output_file)) markdown_file else output_file
+	check_overwrite(destination, overwrite)
+	writeLines(text, destination)
 	invisible(text)
 }
 
@@ -159,12 +162,12 @@ clean <- function(
 #'
 #' @param x A character string to scan.
 #' @param placeholder_prefix Placeholder prefix to match.
-#' @return The first match of `<placeholder_prefix>_[A-Za-z0-9_]+` or `NA_character_` if none.
+#' @return The first match of `<placeholder_prefix>[A-Za-z0-9_]+` or `NA_character_` if none.
 #' @keywords internal
 #' @noRd
-.extract_placeholder <- function(x, placeholder_prefix = "placeholder_content") {
+.extract_placeholder <- function(x, placeholder_prefix = "placeholder_") {
 	prefix <- gsub("([.|()\\^{}+$*?\\[\\]\\\\])", "\\\\\\1", placeholder_prefix)
-	m <- regexpr(paste0(prefix, "_[A-Za-z0-9_]+"), x, perl = TRUE)
+	m <- regexpr(paste0(prefix, "[A-Za-z0-9_]+"), x, perl = TRUE)
 	if (m[1] == -1) {
 		return(NA_character_)
 	}
@@ -183,7 +186,7 @@ clean <- function(
 #' @return Character vector of cleaned lines.
 #' @keywords internal
 #' @noRd
-.clear_draft_stream <- function(lines, draft_mode_prefix, draft_mode_suffix, placeholder_prefix = "placeholder_content") {
+.clear_draft_stream <- function(lines, draft_mode_prefix, draft_mode_suffix, placeholder_prefix = "placeholder_") {
 	txt <- paste(lines, collapse = "\n")
 
 	repeat {

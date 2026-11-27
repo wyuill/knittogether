@@ -4,7 +4,7 @@
 \alias{pptx_col_start}
 \alias{pptx_col_break}
 \alias{pptx_col_end}
-\title{Initiating column structure of PowerPoint slide}
+\title{Split a slide into two columns}
 \usage{
 pptx_col_start(width = 50)
 
@@ -13,26 +13,28 @@ pptx_col_break(width = 50)
 pptx_col_end()
 }
 \arguments{
-\item{width}{Column width as a percentage from 0 to 100.
-In \code{pptx_col_start()} this is the first column width; in
-\code{pptx_col_break()} this is the second column width.}
+\item{width}{The column's width, as a percentage of the slide. In \code{pptx_col_start()} this is the first column; in
+\code{pptx_col_break()} the second. Defaults to 50.}
+}
+\value{
+The Markdown that starts, divides or ends the columns, or \code{NULL} in HTML output.
 }
 \description{
-These functions allow the insertion of columns into markdown output and are primarily intended for .pptx outputs.
-\code{pptx_col_start} initiates the column.
-\code{pptx_col_break} creates a column break. In .pptx outputs there can only be one column break ordinarily.
-\code{pptx_col_end} ends the column section, returning to full width content.
+Put \code{pptx_col_start()} before the first column's content, \code{pptx_col_break()} between the columns and
+\code{pptx_col_end()} after the second column. Each returns the Markdown for that point, so use them in inline code.
+In HTML output they return nothing, and the content runs down the page as normal.
 }
 \examples{
-
- pptx_col_start(width = 40)
-
- # column content (e.g. plot(mtcars))
-
- pptx_col_break(width = 60)
-
- # column content (e.g. head(mtcars))
-
- pptx_col_end()
-
+pptx_col_start(width = 40)
+pptx_col_break(width = 60)
+pptx_col_end()
 }
+\seealso{
+Other PowerPoint:
+\code{\link[=add_pptx_backgrounds_to_headers]{add_pptx_backgrounds_to_headers()}},
+\code{\link[=auto_slide_break]{auto_slide_break()}},
+\code{\link[=insert_slide_break]{insert_slide_break()}},
+\code{\link[=pptx_section_slide]{pptx_section_slide()}},
+\code{\link[=slide_break]{slide_break()}}
+}
+\concept{PowerPoint}

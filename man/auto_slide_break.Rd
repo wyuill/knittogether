@@ -2,7 +2,7 @@
 % Please edit documentation in R/pptx-formatting.R
 \name{auto_slide_break}
 \alias{auto_slide_break}
-\title{Automatically Insert Slide Breaks (Header-Aware)}
+\title{Break text into slides that fit}
 \usage{
 auto_slide_break(
   text,
@@ -12,18 +12,31 @@ auto_slide_break(
 )
 }
 \arguments{
-\item{text}{Text to segment.}
+\item{text}{A single string of Markdown.}
 
-\item{limit}{Character target for each segment.}
+\item{limit}{Maximum number of characters before a break. Defaults to 800.}
 
-\item{break_fun}{Slide break generator.}
+\item{break_fun}{A function that returns the slide break. Defaults to \code{\link[=slide_break]{slide_break()}}.}
 
-\item{slide_levels}{Which header levels automatically create slides.}
+\item{slide_levels}{Heading levels that already start a new slide. Defaults to \code{c(1, 2)}.}
 }
 \value{
-Text with slide breaks inserted.
+\code{text}, with slide breaks added.
 }
 \description{
-Applies \code{\link{insert_slide_break}} repeatedly respecting header rules
-until no more breaks can be inserted.
+Adds slide breaks to \code{text} until no stretch between breaks is longer than \code{limit} characters, using
+\code{\link[=insert_slide_break]{insert_slide_break()}} to choose each break.
 }
+\examples{
+text <- paste(rep("A sentence of text.", 100), collapse = " ")
+auto_slide_break(text, limit = 400, break_fun = function() "---")
+}
+\seealso{
+Other PowerPoint:
+\code{\link[=add_pptx_backgrounds_to_headers]{add_pptx_backgrounds_to_headers()}},
+\code{\link[=insert_slide_break]{insert_slide_break()}},
+\code{\link[=pptx_col_start]{pptx_col_start()}},
+\code{\link[=pptx_section_slide]{pptx_section_slide()}},
+\code{\link[=slide_break]{slide_break()}}
+}
+\concept{PowerPoint}

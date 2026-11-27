@@ -2,13 +2,24 @@
 % Please edit documentation in R/utils.R
 \name{hide_markers_css}
 \alias{hide_markers_css}
-\title{CSS to hide placeholder markers in DOCX and HTML}
+\title{CSS that hides placeholder markers in HTML}
 \usage{
 hide_markers_css()
 }
 \value{
-CSS string.
+A CSS rule, as a string.
 }
 \description{
-For Word documents a \code{PlaceholderMarker} style must be created.
+Returns a CSS rule that hides markers written with the \code{PlaceholderMarker} style by \code{\link[=replace_placeholders]{replace_placeholders()}}
+(\code{marker_mode = "hidden"}). Add it to an HTML document's styles. In Word, give the \code{PlaceholderMarker} character
+style the Hidden font setting instead (see \code{vignette("office-styling")}).
 }
+\examples{
+hide_markers_css()
+}
+\seealso{
+Other output format:
+\code{\link[=is_pptx]{is_pptx()}},
+\code{\link[=output_type]{output_type()}}
+}
+\concept{output format}

@@ -2,30 +2,35 @@
 % Please edit documentation in R/replace.R
 \name{placeholder_map}
 \alias{placeholder_map}
-\title{Create a list of Placeholders with their Content for \code{\link[=replace]{replace()}}}
+\title{Collect the content for every placeholder}
 \usage{
 placeholder_map(specs = list(), scalars = list())
 }
 \arguments{
-\item{specs}{A list of \code{content_spec} objects (unnamed).}
+\item{specs}{A list of objects made with \code{\link[=define_content]{define_content()}}.}
 
-\item{scalars}{A named list of scalar values. Names become slugs.}
+\item{scalars}{A named list of plain values, each inserted inline. The name is the placeholder ID, so
+\code{list(total = 42)} fills \code{placeholder_total}. Quicker than \code{\link[=define_content]{define_content()}}, but with no description in the
+validation log.}
 }
 \value{
-A named list mapping slugs to scalars or \code{content_spec}s.
+A named list, with one entry per placeholder ID.
 }
 \description{
-Constructs a named list for use in \code{\link[=replace]{replace()}} by:
-\itemize{
-\item extracting slugs from each \code{content_spec} in \code{specs};
-\item using names of scalar values from \code{scalars}.
-}
+Combines content made with \code{\link[=define_content]{define_content()}}, and any plain values, into the list that
+\code{\link[=replace_placeholders]{replace_placeholders()}} takes as \code{code_content}.
 }
 \examples{
-\dontrun{
-spec1 <- define_content("A plot", "plot1", "chunk", { plot(1:10) }, "plot")
-spec2 <- define_content("A table", "table1", "asis", mtcars[1:5, 1:5], "table")
-map <- placeholder_map(specs = list(spec1, spec2), scalars = list(version = "0.1.0"))
-}
+plot <- define_content(
+  placeholder_id = "plot",
+  output_mode = "chunk",
+  content = { plot(1:10) }
+)
+placeholder_map(specs = list(plot), scalars = list(version = "0.1.0"))
 
 }
+\seealso{
+Other content:
+\code{\link[=define_content]{define_content()}}
+}
+\concept{content}

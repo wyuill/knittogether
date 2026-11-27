@@ -2,13 +2,22 @@
 % Please edit documentation in R/utils.R
 \name{output_type}
 \alias{output_type}
-\title{Detect output format}
+\title{Name the format being rendered}
 \usage{
 output_type()
 }
 \value{
-String identifying output type.
+One of \code{"pptx"}, \code{"docx"}, \code{"pdf"}, \code{"html"} or \code{"unknown"}.
 }
 \description{
-Detect output format
+Name the format being rendered
 }
+\examples{
+output_type()
+}
+\seealso{
+Other output format:
+\code{\link[=hide_markers_css]{hide_markers_css()}},
+\code{\link[=is_pptx]{is_pptx()}}
+}
+\concept{output format}

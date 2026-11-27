@@ -1,13 +1,13 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+
+name: test-coverage.yaml
+
 on:
   push:
     branches: [main, master]
   pull_request:
 
-name: test-coverage.yaml
-
-permissions: read-all
+permissions:
+  contents: write  # must be write to push badges
 
 jobs:
   test-coverage:
@@ -16,9 +16,13 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -33,28 +37,34 @@ jobs:
             install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
           )
           print(cov)
-          covr::to_cobertura(cov)
+          covr::to_cobertura(cov, filename = "cobertura.xml")
         shell: Rscript {0}
 
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
-        with:
-          # Fail if error if not on PR, or if on PR and token is given
-          fail_ci_if_error: ${{ github.event_name != 'pull_request' || secrets.CODECOV_TOKEN }}
-          files: ./cobertura.xml
-          plugins: noop
-          disable_search: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Show testthat output
-        if: always()
+      # One-time branch creation without placeholder file (safer)
+      - name: Ensure badges branch exists
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
         run: |
-          ## --------------------------------------------------------------------
-          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
+          set -euo pipefail
+          BASE_BRANCH="${GITHUB_REF_NAME}"
+          git fetch origin --prune
+          if ! git ls-remote --exit-code --heads origin badges; then
+            echo "Creating empty badges branch on origin..."
+            git checkout --orphan badges
+            git rm -rf . || true
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit --allow-empty -m "Initialize badges branch (empty)"
+            git push origin badges
+            git checkout "$BASE_BRANCH"
+          else
+            echo "badges branch already exists."
+          fi
         shell: bash
 
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v7
+      - name: Make Coverage Badge
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
+        uses: action-badges/cobertura-coverage-xml-badges@0.4.0
         with:
-          name: coverage-test-failures
-          path: ${{ runner.temp }}/package
+          file-name: coverage.svg
+          badge-branch: badges
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          coverage-file-name: ${{ github.workspace }}/cobertura.xml

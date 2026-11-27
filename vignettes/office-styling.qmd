@@ -15,94 +15,72 @@ knitr::opts_chunk$set(
 )
 ```
 
-`knittogether` works by converting **Office documents → markdown → Quarto → Office**.\
-To keep formatting consistent throughout this round‑trip, it’s important to structure and style your **Word** and **PowerPoint** files correctly.
+knittogether reads Word documents through Pandoc, and Pandoc only understands a document's structure. It can tell a heading from a paragraph, but not that someone made a line bold and 16 point. The more a Word document relies on styles rather than hand formatting, the better it converts. This article covers setting up Word documents and templates so that formatting survives the trip from Word to Markdown and back. For slides, see `vignette("powerpoint")`.
 
-This guide covers:
+## Use Word's built-in styles
 
--   How Word styles translate to markdown
--   Using reference `.docx` and `.pptx` templates
--   Managing captions, headings, lists, and layout
--   Creating hidden placeholder styles
--   Avoiding Word formatting that Pandoc cannot interpret
--   Ensuring PowerPoint output respects your template
--   Common pitfalls and how to avoid them
+Use Word's own styles for everything: Title, Heading 1 to 6, Normal, List Paragraph and Caption. Pandoc turns them into Markdown like this:
 
-# Word Styling
+| Word style     | Markdown                    |
+|----------------|-----------------------------|
+| Heading 1      | `#`                         |
+| Heading 2      | `##`                        |
+| Heading 3      | `###`                       |
+| Normal         | A plain paragraph           |
+| List Paragraph | A `-` or `1.` list          |
+| Caption        | A figure or table caption   |
 
-Word documents are best treated as **structured**, not manually formatted, documents. Pandoc relies heavily on Word’s built‑in styles to produce correct markdown.
+If you want headings to look different, change the style (Home → Styles → right-click → Modify) rather than formatting each heading by hand. Hand formatting is lost on conversion. A changed style is kept, and you can carry it over to the output with a reference document (see below).
 
-Ensure all content uses Word’s official styles such as Title Heading 1-6, Normal, List Paragraph, and Caption.
+Some things don't convert at all. Text boxes, SmartArt, WordArt and shapes with text in them are dropped or flattened. Turn them into ordinary text, or save them as an image with a caption.
 
-Pandoc ignores or flattens items such as text boxes, SmartArt, WordArt, and shapes containing text. Converting these to text format or saving as an image with appropriate caption allows them to be rendered as desired.
+In tables, avoid merged cells. Tables with long text or line breaks in cells may need different Pandoc settings, as described in `vignette("extended-workflow")`.
 
-Tables with long text or line breaks may need adjustment to the Pandoc conversion process as described in `vignette("extended-workflow")`. Merged cells in tables should be avoided.
+## Add captions with Insert Caption
 
-Avoid manually changing font, size, alignment, or colour on individual paragraphs. Instead, modify the style itself (Home → Styles → Modify). This is because pandoc converts these into markdown as follows:
+Add captions to images and tables with Word's own tool: right-click the image or table and choose Insert Caption. Pandoc then knows the caption belongs to the image or table. A caption typed underneath as ordinary text is just another paragraph.
 
-| Word style     | Markdown output                      |
-|----------------|--------------------------------------|
-| Heading 1      | `#`                                  |
-| Heading 2      | `##`                                 |
-| Heading 3      | `###`                                |
-| Caption        | Markdown figure/table caption syntax |
-| Normal         | Plain paragraphs                     |
-| List Paragraph | `-` / `1.` lists                     |
+## Reference documents
 
-## Captions (images & tables)
+A reference document is a Word file whose styles Quarto copies into the output. Point to it in the YAML of your `.qmd`:
 
-Word captions must be inserted via Word’s built‑in tool: Right‑click image/table → Insert Caption
-
-This ensures Pandoc recognises the caption as:
-
--   an image/table
--   with a formal caption
--   with a stable anchor to the media file
-
-Avoid typing captions manually below images as they will not be detected.
-
-# Reference documents
-
-Quarto lets you specify a custom Word or PowerPoint template:
-
-```         
+```yaml
 format:
   docx:
     reference-doc: reference.docx
 ```
 
-## Word
+To make one:
 
-Your reference document should define the Styles supported by pandoc markdown such as Headers 1-6, body text and lists. It is advisable to take a blank Word file, ideally one generated via Quarto/pandoc and:
+1. Start from a blank Word file, ideally one made by Quarto or Pandoc, so all the styles it uses are already there.
+2. Change the styles you care about. Don't add any body text.
+3. Save it as `reference.docx` in your project or a shared template folder.
 
--   Modify only the Styles, not the body text
--   Save as reference.docx
--   Store it in your project or shared template folder
--   Reference it from your .qmd
+To stop colleagues using formatting the template doesn't support, you can limit them to its styles with Review → Restrict Editing.
 
-To prevent formatting outside of supported and tested style from being used. This can be achieved by going through Review → Protect → Restrict Editing.
+## Callouts and other Quarto features
 
-## PowerPoint
+You can type Quarto syntax straight into Word and it will work once the document is converted. For example, this text in a Word document becomes a warning callout:
 
-PowerPoint styling is controlled via a template (.pptx) master slide deck. Pandoc supports a limited set of [slide layouts](https://pandoc.org/demo/example33/10.1-structuring-the-slide-show.html).
-
-# Advanced features
-
-## Callouts and other components
-
-While not ideal for readability in Word, it is possible to specify components such as callouts by adding the syntax directly in the document. For instance, this will render a callout when read into Quarto.
-
-```         
-This is a word document.
-
+```markdown
 ::: {.callout-warning}
 # Warning!
 This is a callout warning.
 :::
 ```
 
-## Making placeholders less disruptive
+It isn't pretty to read in Word, so use it sparingly.
 
-For the ease of reading, placeholders are wrapped in a custom styling. If Word or HTML documents have the relevant styling, placeholders can be hidden from view. In Word this can be toggled with the ¶ button on the Home tab or with `CTRL + *`. Consideration should be made to whether this makes it easier or harder for users editing the Word document as invisible content is easier to accidentally delete.
+## Hiding placeholders and markers
 
-An example Word document is provided in this package and is accessible via `system.file("extdata", "PlaceholderMarker_example.docx", package = "knittogether")`. To apply the style to an arbitrary Word document, create a custom character style with the Hidden font attribute enabled. In Word: Home → Styles → New Style → Style type: Character → Format → Font → tick Hidden. Reveal placeholders by toggling Show/Hide (¶).
+Placeholders and draft markers are easier to live with if Word can hide them. Give them a character style with the Hidden font setting, and they disappear until someone clicks ¶ on the Home tab (or presses Ctrl + Shift + 8).
+
+To create the style: Home → Styles → New Style, set the style type to Character, then Format → Font and tick Hidden.
+
+The package includes a Word document that already has these styles:
+
+```{r}
+system.file("extdata", "PlaceholderMarker_example.docx", package = "knittogether")
+```
+
+Think about whether hiding helps the people editing the document. Text you can't see is easy to delete by accident, and a deleted marker means that output can't be refreshed. For HTML output, `hide_markers_css()` hides the markers in the same way.

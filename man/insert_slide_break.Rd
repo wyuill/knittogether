@@ -2,7 +2,7 @@
 % Please edit documentation in R/pptx-formatting.R
 \name{insert_slide_break}
 \alias{insert_slide_break}
-\title{Insert a Slide Break After a Character Limit}
+\title{Break text into a new slide once, before a character limit}
 \usage{
 insert_slide_break(
   text,
@@ -12,27 +12,33 @@ insert_slide_break(
 )
 }
 \arguments{
-\item{text}{A character string.}
+\item{text}{A single string of Markdown.}
 
-\item{limit}{Character width before attempting a break.}
+\item{limit}{Maximum number of characters before a break. Defaults to 800.}
 
-\item{break_fun}{Function returning the slide break marker.}
+\item{break_fun}{A function that returns the slide break. Defaults to \code{\link[=slide_break]{slide_break()}}.}
 
-\item{slide_levels}{Integer vector of header levels that automatically start new slides (default: c(1, 2)).}
+\item{slide_levels}{Heading levels that already start a new slide. Defaults to \code{c(1, 2)}.}
 }
 \value{
-Modified text with a slide break inserted.
+\code{text}, with a slide break added if it was longer than \code{limit}.
 }
 \description{
-Inserts a slide break at the closest clean boundary before \code{limit}.
+If \code{text} is longer than \code{limit} characters, adds one slide break at the best place before the limit. It looks,
+in order, for a heading that doesn't start a slide by itself (level 3 to 6 by default), the end of a sentence, a
+paragraph break or a space, and cuts at \code{limit} only if it finds none. A heading at the very start of \code{text} is
+ignored. \code{\link[=auto_slide_break]{auto_slide_break()}} repeats this until the whole text fits.
 }
-\details{
-Break priority order:
-\enumerate{
-\item Non-slide header levels (e.g., 3–6)
-\item Sentence boundary
-\item Paragraph break
-\item Word boundary
-\item Hard cut at \code{limit}
+\examples{
+text <- paste(rep("A sentence of text.", 60), collapse = " ")
+insert_slide_break(text, limit = 200, break_fun = function() "---")
 }
+\seealso{
+Other PowerPoint:
+\code{\link[=add_pptx_backgrounds_to_headers]{add_pptx_backgrounds_to_headers()}},
+\code{\link[=auto_slide_break]{auto_slide_break()}},
+\code{\link[=pptx_col_start]{pptx_col_start()}},
+\code{\link[=pptx_section_slide]{pptx_section_slide()}},
+\code{\link[=slide_break]{slide_break()}}
 }
+\concept{PowerPoint}

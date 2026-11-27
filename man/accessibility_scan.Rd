@@ -2,31 +2,31 @@
 % Please edit documentation in R/accessibility.R
 \name{accessibility_scan}
 \alias{accessibility_scan}
-\title{Accessibility Scanner for Images and Tables}
+\title{Check images and tables have alt text or captions}
 \usage{
 accessibility_scan(lines, output = NULL)
 }
 \arguments{
-\item{lines}{Character vector (one element per line), a single string containing newlines, or an htmltools::HTML object.}
+\item{lines}{The text to check: a character vector with one line per element, a single string with line breaks,
+or an \code{htmltools::HTML()} object.}
 
-\item{output}{If a path is provided, the results will be written to a csv file. If \code{NULL} results will only be
-returned. Defaults to \code{NULL}.}
+\item{output}{Optional. A path to save the results to as a CSV file. Defaults to \code{NULL}.}
 }
 \value{
-A data.frame with columns: kind, line, src, issue, snippet
+A data frame with one row per problem and columns \code{kind}, \code{line}, \code{src}, \code{issue} and \code{snippet}.
 }
 \description{
-Scans Markdown/HTML text for accessibility issues:
-• Missing or generic alt text (images outside figures)
-• Missing or generic captions (images inside figures; tables; reactable)
-• reactable / ggiraph widgets lacking descriptive captions
-}
-\details{
-Rules (Option A, WCAG-aligned):
+Scans Markdown or HTML for images and tables a screen reader user couldn't make sense of:
 \itemize{
-\item If an \verb{&lt;img&gt;} is inside a \verb{&lt;figure&gt;} with a \verb{&lt;figcaption&gt;}, the CAPTION is the accessible name.
-Alt text is ignored. If the caption is missing or generic → FAIL.
-\item If an \verb{&lt;img&gt;} is NOT inside a figure → must have descriptive alt → otherwise FAIL.
-\item Tables: need a descriptive caption (Markdown "Table:" line above, or HTML \verb{&lt;caption&gt;}, or aria-label).
+\item An image inside a figure needs a descriptive caption. Its alt text isn't checked, because the caption is what
+gets read out.
+\item An image outside a figure needs descriptive alt text.
+\item A table needs a descriptive caption: a Markdown \verb{Table:} line, an HTML \verb{<caption>} or an \code{aria-label}.
+\item \code{reactable} and \code{ggiraph} widgets need a descriptive caption.
 }
+
+Missing text, and text that says nothing about the content such as "Figure 1" or "Img 4", are both reported.
+}
+\examples{
+accessibility_scan(c("![](plot.png)", "", "![A line chart of rising costs](costs.png)"))
 }

@@ -1,9 +1,15 @@
 # Slide break ----
-#' Insert a Slide Break
+#' Start a new slide
 #'
-#' Returns a slide break marker ("---") when the output format is not HTML.
+#' @description
+#' Returns `---`, which starts a new slide, when the document isn't being rendered to HTML. In HTML it returns
+#' nothing, so the same document can render to both. Use it in inline code, `` `r slide_break()` ``, or as the
+#' `break_fun` of [auto_slide_break()].
 #'
-#' @return A character string if non-HTML output, otherwise NULL.
+#' @return `"---"`, or `NULL` in HTML output.
+#' @examples
+#' slide_break()
+#' @family PowerPoint
 #' @export
 slide_break <- function() {
 	if (!is_html()) {
@@ -11,23 +17,24 @@ slide_break <- function() {
 	}
 }
 
-#' Insert a Slide Break After a Character Limit
+#' Break text into a new slide once, before a character limit
 #'
-#' Inserts a slide break at the closest clean boundary before `limit`.
+#' @description
+#' If `text` is longer than `limit` characters, adds one slide break at the best place before the limit. It looks,
+#' in order, for a heading that doesn't start a slide by itself (level 3 to 6 by default), the end of a sentence, a
+#' paragraph break or a space, and cuts at `limit` only if it finds none. A heading at the very start of `text` is
+#' ignored. [auto_slide_break()] repeats this until the whole text fits.
 #'
-#' Break priority order:
-#' 1. Non-slide header levels (e.g., 3–6)
-#' 2. Sentence boundary
-#' 3. Paragraph break
-#' 4. Word boundary
-#' 5. Hard cut at `limit`
+#' @param text A single string of Markdown.
+#' @param limit Maximum number of characters before a break. Defaults to 800.
+#' @param break_fun A function that returns the slide break. Defaults to [slide_break()].
+#' @param slide_levels Heading levels that already start a new slide. Defaults to `c(1, 2)`.
 #'
-#' @param text A character string.
-#' @param limit Character width before attempting a break.
-#' @param break_fun Function returning the slide break marker.
-#' @param slide_levels Integer vector of header levels that automatically start new slides (default: c(1, 2)).
-#'
-#' @return Modified text with a slide break inserted.
+#' @return `text`, with a slide break added if it was longer than `limit`.
+#' @examples
+#' text <- paste(rep("A sentence of text.", 60), collapse = " ")
+#' insert_slide_break(text, limit = 200, break_fun = function() "---")
+#' @family PowerPoint
 #' @export
 insert_slide_break <- function(text, limit = 800, break_fun = slide_break, slide_levels = c(1, 2)) {
 	if (nchar(text) <= limit) {
@@ -47,14 +54,19 @@ insert_slide_break <- function(text, limit = 800, break_fun = slide_break, slide
 	}
 
 	# Header breaks
-	header_regex <- "(?m)^(#{1,6})\\s"
-	header_matches <- gregexpr(header_regex, text, perl = TRUE)[[1]]
+	# Headings outside code and YAML, with their character position in `text`
+	lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
+	line_start <- cumsum(c(1L, nchar(lines[-length(lines)]) + 1L))
+	is_hdr <- .is_heading_line(lines)
 
-	if (length(header_matches) > 0 && header_matches[1] != -1) {
-		headers <- regmatches(text, gregexpr(header_regex, text, perl = TRUE))[[1]]
-		header_lvls <- nchar(gsub(" .*", "", headers))
+	if (any(is_hdr)) {
+		header_lvls <- nchar(sub("^(#+).*", "\\1", lines[is_hdr]))
+		header_pos <- line_start[is_hdr]
 
-		header_pos <- header_matches
+		# A header at the very start of the text can't be broken before: doing so would insert an empty segment and
+		# leave the text unchanged, so auto_slide_break() would loop forever.
+		header_lvls <- header_lvls[header_pos > 1]
+		header_pos <- header_pos[header_pos > 1]
 
 		# slide-level headers (natural break)
 		slide_hdrs <- header_pos[header_lvls %in% slide_levels & header_pos <= limit]
@@ -100,22 +112,33 @@ insert_slide_break <- function(text, limit = 800, break_fun = slide_break, slide
 	paste0(substr(text, 1, pos), BREAK_TOKEN, substr(text, pos + 1, nchar(text)))
 }
 
-#' Automatically Insert Slide Breaks (Header-Aware)
+#' Break text into slides that fit
 #'
-#' Applies \code{\link{insert_slide_break}} repeatedly respecting header rules
-#' until no more breaks can be inserted.
+#' @description
+#' Adds slide breaks to `text` until no stretch between breaks is longer than `limit` characters, using
+#' [insert_slide_break()] to choose each break.
 #'
-#' @param text Text to segment.
-#' @param limit Character target for each segment.
-#' @param break_fun Slide break generator.
-#' @param slide_levels Which header levels automatically create slides.
+#' @inheritParams insert_slide_break
 #'
-#' @return Text with slide breaks inserted.
+#' @return `text`, with slide breaks added.
+#' @examples
+#' text <- paste(rep("A sentence of text.", 100), collapse = " ")
+#' auto_slide_break(text, limit = 400, break_fun = function() "---")
+#' @family PowerPoint
 #' @export
 auto_slide_break <- function(text, limit = 800, break_fun = slide_break, slide_levels = c(1, 2)) {
 	BREAK_TOKEN <- paste0("\n\n", break_fun(), "\n\n")
 
+	# Every pass that changes the text adds at least one break before a later character, so there can never be more
+	# passes than characters. Exceeding that means no progress is being made.
+	max_passes <- nchar(text) + 1L
+	passes <- 0L
+
 	repeat {
+		passes <- passes + 1L
+		if (passes > max_passes) {
+			stop("auto_slide_break() could not make progress splitting the text.", call. = FALSE)
+		}
 		# Split into existing segments
 		segments <- strsplit(text, BREAK_TOKEN, fixed = TRUE)[[1]]
 
@@ -139,27 +162,22 @@ auto_slide_break <- function(text, limit = 800, break_fun = slide_break, slide_l
 }
 
 # Slide columns ----
-#' Initiating column structure of PowerPoint slide
+#' Split a slide into two columns
 #'
-#' @description These functions allow the insertion of columns into markdown output and are primarily intended for .pptx outputs.
-#' `pptx_col_start` initiates the column.
-#' `pptx_col_break` creates a column break. In .pptx outputs there can only be one column break ordinarily.
-#' `pptx_col_end` ends the column section, returning to full width content.
-#' @param width Column width as a percentage from 0 to 100.
-#'   In `pptx_col_start()` this is the first column width; in
-#'   `pptx_col_break()` this is the second column width.
+#' @description
+#' Put `pptx_col_start()` before the first column's content, `pptx_col_break()` between the columns and
+#' `pptx_col_end()` after the second column. Each returns the Markdown for that point, so use them in inline code.
+#' In HTML output they return nothing, and the content runs down the page as normal.
+#'
+#' @param width The column's width, as a percentage of the slide. In `pptx_col_start()` this is the first column; in
+#'   `pptx_col_break()` the second. Defaults to 50.
+#'
+#' @return The Markdown that starts, divides or ends the columns, or `NULL` in HTML output.
 #' @examples
-#'
-#'  pptx_col_start(width = 40)
-#'
-#'  # column content (e.g. plot(mtcars))
-#'
-#'  pptx_col_break(width = 60)
-#'
-#'  # column content (e.g. head(mtcars))
-#'
-#'  pptx_col_end()
-#'
+#' pptx_col_start(width = 40)
+#' pptx_col_break(width = 60)
+#' pptx_col_end()
+#' @family PowerPoint
 #' @export
 pptx_col_start <- function(width = 50) {
 	if (!is_html()) {
@@ -167,8 +185,6 @@ pptx_col_start <- function(width = 50) {
 	}
 }
 
-#' Initiating the second column of a PowerPoint slide
-#'
 #' @rdname pptx_col_start
 #' @export
 pptx_col_break <- function(width = 50) {
@@ -177,8 +193,6 @@ pptx_col_break <- function(width = 50) {
 	}
 }
 
-#' End column structuring on PowerPoint slide
-#'
 #' @rdname pptx_col_start
 #' @export
 pptx_col_end <- function() {
@@ -204,6 +218,7 @@ pptx_col_end <- function() {
 #'   braces.
 #'
 #' @keywords internal
+#' @noRd
 .compose_attr_with_bg <- function(attr_inner, bg_path, overwrite = TRUE) {
 	has_bg <- grepl("background-image\\s*=\\s*(['\"]).*?\\1", attr_inner, perl = TRUE)
 
@@ -228,19 +243,28 @@ pptx_col_end <- function() {
 	}
 }
 
-#' Add Slide Background Images
+#' Write a heading with a background image
 #'
 #' @description
-#' Returns a header (`#`, `##`, …) with a provided background image
+#' In PowerPoint output, returns a heading with a background image, for section or title slides. In other formats it
+#' returns a plain heading, or nothing if `include_html = FALSE`.
 #'
-#' @param level Header level numeric (1 = `#`, 2 = `##`, etc.).
-#' @param title Slide title.
-#' @param bg The name of the background image file (without extension e.g., `"blue"` rather than `"blue.png"`).
-#' @param include_html If TRUE, emit a header for HTML; otherwise suppress. Defaults to `TRUE`.
-#' @param bg_dir Directory containing background images.
+#' The image is looked up in `bg_dir` by file name without its extension. It can be named after the heading level
+#' (`level1.png` or `1.png`) or after `bg`. Exactly one file must match. Make the image the same size as your
+#' slides.
 #'
-#' @return A `knitr::asis_output()` object.
+#' @param level Heading level: 1 for `#`, 2 for `##` and so on. Defaults to 1.
+#' @param title The heading text.
+#' @param bg Optional. The image's file name without the extension, for example `"blue"` for `blue.png`.
+#' @param include_html Logical. If `FALSE`, write nothing when the output isn't PowerPoint. Defaults to `TRUE`.
+#' @param bg_dir The folder that holds the background images.
 #'
+#' @return The heading, ready to print in a chunk with `output: asis`, or `NULL`.
+#' @examples
+#' \dontrun{
+#' pptx_section_slide(level = 1, title = "Results", bg = "blue", bg_dir = "backgrounds")
+#' }
+#' @family PowerPoint
 #' @export
 pptx_section_slide <- function(level = 1, title, bg = NULL, include_html = TRUE, bg_dir) {
 	if (!is.numeric(level) || length(level) != 1L) {
@@ -288,20 +312,24 @@ pptx_section_slide <- function(level = 1, title, bg = NULL, include_html = TRUE,
 	}
 }
 
-#' Add a Background Image to All Headers of Selected Levels in a String
+#' Add a background image to headings in Markdown
 #'
 #' @description
-#' Scans a Markdown/Quarto text string, finds headers, and inserts or replaces a `background-image` attribute on all
-#' headers whose level is in `levels`.
+#' Adds a background image to every heading of the given levels in `text`, for example all section slides in
+#' converted Markdown. Headings inside code blocks are left alone.
 #'
-#' @param text Markdown/Quarto content as a single string.
-#' @param levels Integer vector of header levels to target.
-#' @param bg The name of the background image file (without extension e.g., `"blue"` rather than `"blue.png"`).
-#' @param bg_dir Directory where background files live.
-#' @param overwrite Replace an existing `background-image` attribute?
+#' @param text A single string of Markdown.
+#' @param levels The heading levels to change. Defaults to 1.
+#' @param bg The image's file name without the extension, for example `"blue"` for `blue.png`.
+#' @param bg_dir The folder that holds the background images.
+#' @param overwrite Logical. If `TRUE` (the default), replace a background a heading already has.
 #'
-#' @return Modified text string with updated headers.
-#'
+#' @return `text`, with the background added to those headings.
+#' @examples
+#' \dontrun{
+#' add_pptx_backgrounds_to_headers(text, levels = 1, bg = "blue", bg_dir = "backgrounds")
+#' }
+#' @family PowerPoint
 #' @export
 add_pptx_backgrounds_to_headers <- function(text, levels = 1, bg, bg_dir, overwrite = TRUE) {
 	if (!is.character(text) || length(text) != 1L) {
@@ -334,14 +362,8 @@ add_pptx_backgrounds_to_headers <- function(text, levels = 1, bg, bg_dir, overwr
 	# Process string
 	lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
 
-	# Handle YAML front matter
-	in_yaml <- FALSE
-	yaml_started <- grepl("^---\\s*$", lines[1])
-	if (yaml_started) {
-		in_yaml <- TRUE
-	}
-
-	is_yaml_delim <- function(x) grepl("^---\\s*$|^\\.\\.\\.\\s*$", x)
+	# Skip YAML front matter and fenced code, where `#` lines are not headings
+	skip <- .code_or_yaml_lines(lines)
 
 	header_re <- "^\\s{0,3}(#{1,6})[ \\t]+(.+?)([ \\t]+\\{[^}]*\\})?\\s*$"
 
@@ -354,11 +376,7 @@ add_pptx_backgrounds_to_headers <- function(text, levels = 1, bg, bg_dir, overwr
 	for (i in seq_along(lines)) {
 		line <- lines[i]
 
-		# Skip inside YAML
-		if (in_yaml) {
-			if (i > 1 && is_yaml_delim(line)) {
-				in_yaml <- FALSE
-			}
+		if (skip[i]) {
 			next
 		}
 

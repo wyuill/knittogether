@@ -6,7 +6,7 @@ test_that("generate_quality_check creates log on first run and marks new content
 	md_file <- file.path(td, "test.md")
 
 	# simple markdown with two placeholders
-	writeLines(c("Some text", "placeholder_content_id1", "More text", "placeholder_content_id2"), md_file)
+	writeLines(c("Some text", "placeholder_id1", "More text", "placeholder_id2"), md_file)
 
 	code_map <- list(
 		id1 = list(
@@ -46,7 +46,7 @@ test_that("generate_quality_check detects unchanged code on second run", {
 	validation_dir <- file.path(td, "validation2")
 	md_file <- file.path(td, "test2.md")
 
-	writeLines("placeholder_content_id1", md_file)
+	writeLines("placeholder_id1", md_file)
 
 	code_map <- list(
 		id1 = list(
@@ -76,7 +76,7 @@ test_that("markdown context snippet is extracted correctly", {
 	validation_dir <- file.path(td, "validation3")
 	md_file <- file.path(td, "test3.md")
 
-	writeLines(c("alpha beta gamma", "placeholder_content_ctx1 here", "delta epsilon zeta"), md_file)
+	writeLines(c("alpha beta gamma", "placeholder_ctx1 here", "delta epsilon zeta"), md_file)
 
 	code_map <- list(ctx1 = list(placeholder_id = "ctx1", content_expr = "99"))
 
@@ -93,7 +93,7 @@ test_that("generate_quality_check handles malformed existing log by treating it 
 	validation_dir <- file.path(td, "validation_malformed")
 	dir.create(validation_dir, recursive = TRUE)
 	md_file <- file.path(td, "test_malformed.md")
-	writeLines("placeholder_content_id1", md_file)
+	writeLines("placeholder_id1", md_file)
 
 	# Missing required columns on purpose
 	utils::write.csv(data.frame(bad_col = "x"), file.path(validation_dir, "quality_log.csv"), row.names = FALSE)
@@ -118,7 +118,7 @@ test_that("generate_quality_check works when log and html outputs are disabled",
 	td <- withr::local_tempdir()
 	validation_dir <- file.path(td, "validation_disabled")
 	md_file <- file.path(td, "test_disabled.md")
-	writeLines("placeholder_content_id1", md_file)
+	writeLines("placeholder_id1", md_file)
 
 	code_map <- list(
 		id1 = list(

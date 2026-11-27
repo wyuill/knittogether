@@ -13,7 +13,7 @@ An R package designed to enable reproducible collaboration between data professi
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://sturdy-giggle-wwjo5pk.pages.github.io/}
+  \item \url{https://wyuill.github.io/knittogether/}
 }
 
 }
@@ -27,8 +27,8 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item London Borough of Camden Public Health Intelligence (Health & Wellbeing) \email{publichealth.intel@camden.gov.uk} [copyright holder]
   \item Ben Kimpton \email{ben.kimpton@camden.gov.uk} [contributor]
+  \item London Borough of Camden Public Health Intelligence (Health & Wellbeing) \email{publichealth.intel@camden.gov.uk} [copyright holder]
 }
 
 }

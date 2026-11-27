@@ -5,7 +5,7 @@
 \alias{is_docx}
 \alias{is_pdf}
 \alias{is_html}
-\title{Check if output is PPTX}
+\title{Check the format being rendered}
 \usage{
 is_pptx()
 
@@ -16,12 +16,18 @@ is_pdf()
 is_html()
 }
 \value{
-TRUE if knitr is outputting the relevant file type.
+\code{TRUE} if the document is being rendered to that format, otherwise \code{FALSE}.
 }
 \description{
-Utility functions to detect the current knitr output format.
-\code{is_html} checks whether the output is HTML.
-\code{is_pdf} checks whether the output is PDF.
-\code{is_docx} checks whether the output is DOCX.
-\code{is_pptx} checks whether the output is PPTX.
+Use these in a Quarto or R Markdown document to do something only for one output format, for example to add
+slide breaks only in PowerPoint. Outside a render, they all return \code{FALSE}.
 }
+\examples{
+if (is_pptx()) "Only in the slides"
+}
+\seealso{
+Other output format:
+\code{\link[=hide_markers_css]{hide_markers_css()}},
+\code{\link[=output_type]{output_type()}}
+}
+\concept{output format}

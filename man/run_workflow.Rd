@@ -2,26 +2,45 @@
 % Please edit documentation in R/workflow.R
 \name{run_workflow}
 \alias{run_workflow}
-\title{This function is a wrapper for the full knittogether workflow}
+\title{Convert, clean and fill a document in one call}
 \usage{
-run_workflow(...)
+run_workflow(..., base_name = NULL)
 }
 \arguments{
-\item{...}{Additional arguments passed to the underlying functions}
+\item{...}{Named arguments for \code{\link[=convert_markdown]{convert_markdown()}}, \code{\link[=clean_markdown]{clean_markdown()}} and \code{\link[=replace_placeholders]{replace_placeholders()}}.}
+
+\item{base_name}{Optional. When \code{input_file} is a folder, only consider files whose names start with this text.}
 }
 \value{
-Invisibly returns the updated Markdown (character vector).
+The filled Markdown, invisibly, as a character string.
 }
 \description{
-This function calls the \code{\link[=convert]{convert()}}, \code{\link[=clean]{clean()}}, and \code{\link[=replace]{replace()}} functions to extract docx or pptx
-content to markdown, clean this markdown, and then replace any placeholders with code generated content, simplifying
-using the workflow.
+Runs \code{\link[=convert_markdown]{convert_markdown()}}, \code{\link[=clean_markdown]{clean_markdown()}} and \code{\link[=replace_placeholders]{replace_placeholders()}} in turn. Each step reads the file the
+step before it wrote, so if you give \code{clean_markdown()} an \code{output_file}, that's the file that gets filled.
+
+Pass any argument the three functions take, by name, and it goes to whichever function has it (an argument such
+as \code{placeholder_prefix} goes to both functions that use it). Anything you leave out uses that function's
+default. An argument none of them recognises, or one without a name, is an error, so a typo is caught.
+
+If \code{input_file} is a folder, the newest Word or PowerPoint file in it is used (see \code{\link[=latest_word_file]{latest_word_file()}}).
 }
-\details{
-The wrapper determines which arguments belong to which function by matching argument names against the formal
-arguments of \code{\link[=convert]{convert()}}, \code{\link[=replace]{replace()}}, and \code{\link[=clean]{clean()}}. Arguments not recognised by any function will be ignored.
-Defaults for all parameters are taken from the underlying functions.
+\examples{
+\dontrun{
+run_workflow(
+  input_file = "drafts",
+  base_name = "report",
+  markdown_file = "report.md",
+  placeholder_prefix = "placeholder_",
+  heading_offset = TRUE,
+  code_content = placeholder_map(specs = list(plot))
+)
+}
+
 }
 \seealso{
-\code{\link[=convert]{convert()}}, \code{\link[=replace]{replace()}}, \code{\link[=clean]{clean()}}
+Other workflow:
+\code{\link[=clean_markdown]{clean_markdown()}},
+\code{\link[=convert_markdown]{convert_markdown()}},
+\code{\link[=replace_placeholders]{replace_placeholders()}}
 }
+\concept{workflow}

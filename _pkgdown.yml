@@ -1,4 +1,4 @@
-url: https://sturdy-giggle-wwjo5pk.pages.github.io/
+url: https://wyuill.github.io/knittogether/
 template:
   bootstrap: 5
   light-switch: true
@@ -7,3 +7,41 @@ authors:
   footer:
     roles: [cph]
 
+
+reference:
+- title: Workflow
+  desc: Bring a Word or PowerPoint file into Markdown, fill its placeholders and tidy it for Quarto.
+  contents:
+  - convert_markdown
+  - clean_markdown
+  - replace_placeholders
+  - run_workflow
+- title: Defining content
+  desc: Say what goes in each placeholder.
+  contents:
+  - define_content
+  - placeholder_map
+- title: Versions
+  desc: Pick up the latest draft and keep earlier ones.
+  contents:
+  - latest_word_file
+  - timestamped_path
+- title: PowerPoint
+  desc: Slide breaks, columns and backgrounds for slides.
+  contents:
+  - slide_break
+  - insert_slide_break
+  - auto_slide_break
+  - pptx_col_start
+  - pptx_section_slide
+  - add_pptx_backgrounds_to_headers
+- title: Output format
+  desc: Do something only for one output format, or hide markers in HTML.
+  contents:
+  - is_html
+  - output_type
+  - hide_markers_css
+- title: Checking and long documents
+  contents:
+  - accessibility_scan
+  - split_markdown

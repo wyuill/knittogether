@@ -2,24 +2,43 @@
 % Please edit documentation in R/pptx-formatting.R
 \name{pptx_section_slide}
 \alias{pptx_section_slide}
-\title{Add Slide Background Images}
+\title{Write a heading with a background image}
 \usage{
 pptx_section_slide(level = 1, title, bg = NULL, include_html = TRUE, bg_dir)
 }
 \arguments{
-\item{level}{Header level numeric (1 = \verb{#}, 2 = \verb{##}, etc.).}
+\item{level}{Heading level: 1 for \verb{#}, 2 for \verb{##} and so on. Defaults to 1.}
 
-\item{title}{Slide title.}
+\item{title}{The heading text.}
 
-\item{bg}{The name of the background image file (without extension e.g., \code{"blue"} rather than \code{"blue.png"}).}
+\item{bg}{Optional. The image's file name without the extension, for example \code{"blue"} for \code{blue.png}.}
 
-\item{include_html}{If TRUE, emit a header for HTML; otherwise suppress. Defaults to \code{TRUE}.}
+\item{include_html}{Logical. If \code{FALSE}, write nothing when the output isn't PowerPoint. Defaults to \code{TRUE}.}
 
-\item{bg_dir}{Directory containing background images.}
+\item{bg_dir}{The folder that holds the background images.}
 }
 \value{
-A \code{knitr::asis_output()} object.
+The heading, ready to print in a chunk with \code{output: asis}, or \code{NULL}.
 }
 \description{
-Returns a header (\verb{#}, \verb{##}, …) with a provided background image
+In PowerPoint output, returns a heading with a background image, for section or title slides. In other formats it
+returns a plain heading, or nothing if \code{include_html = FALSE}.
+
+The image is looked up in \code{bg_dir} by file name without its extension. It can be named after the heading level
+(\code{level1.png} or \verb{1.png}) or after \code{bg}. Exactly one file must match. Make the image the same size as your
+slides.
 }
+\examples{
+\dontrun{
+pptx_section_slide(level = 1, title = "Results", bg = "blue", bg_dir = "backgrounds")
+}
+}
+\seealso{
+Other PowerPoint:
+\code{\link[=add_pptx_backgrounds_to_headers]{add_pptx_backgrounds_to_headers()}},
+\code{\link[=auto_slide_break]{auto_slide_break()}},
+\code{\link[=insert_slide_break]{insert_slide_break()}},
+\code{\link[=pptx_col_start]{pptx_col_start()}},
+\code{\link[=slide_break]{slide_break()}}
+}
+\concept{PowerPoint}
