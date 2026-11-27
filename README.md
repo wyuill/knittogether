@@ -1,11 +1,5 @@
 # knittogether <img src="man/figures/logo.png" alt="hex logo for knittogether" align="right" height="120"/>
 
-<!-- badges: start -->
-
-[![test coverage](https://github.com/LBCamden/knittogether/blob/badges/.badges/main/coverage.svg)](https://github.com/LBCamden/knittogether/actions/workflows/test-coverage.yaml) [![R-CMD-check](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LBCamden/knittogether/actions/workflows/R-CMD-check.yaml)
-
-<!-- badges: end -->
-
 knittogether lets you write a report with colleagues who work in Word or PowerPoint, while you keep the numbers, charts and tables in R. They keep writing in Office. You keep your analysis reproducible. Nobody copies and pastes.
 
 ## Why
